@@ -342,6 +342,86 @@
     }
     .struct-plus  { color: #6b7280; }
     .struct-arrow { color: #6b7280; }
+    /* ── Quiz ── */
+    .key-w.is-quiz       { background: #4c1d95; }
+    .key-b.is-quiz       { background: #3b1a7a; }
+    .key-w.is-quiz .k-label { color: #fff; font-weight: 700; }
+    .key-w.is-wrong-flash   { background: #dc2626 !important; }
+    .key-b.is-wrong-flash   { background: #b91c1c !important; }
+
+    .quiz-sub-nav { display: flex; gap: 0.4rem; width: 100%; margin-bottom: 1.25rem; }
+    .quiz-sub-btn {
+      flex: 1; background: #1f2937; border: 1px solid #374151; color: #9ca3af;
+      border-radius: 10px; padding: 0.55rem; cursor: pointer; font-size: 0.88rem;
+      font-weight: 500; transition: background 0.12s, color 0.12s;
+      touch-action: manipulation; min-height: 44px;
+    }
+    .quiz-sub-btn:hover  { background: #374151; color: #e5e7eb; }
+    .quiz-sub-btn.active { background: #374151; color: #c4b5fd; font-weight: 700; border-color: #6d28d9; }
+
+    .quiz-score {
+      width: 100%; text-align: center; font-size: 0.82rem;
+      color: #6b7280; margin-bottom: 1.25rem;
+    }
+    .quiz-score strong { color: #e5e7eb; font-size: 1rem; }
+
+    .quiz-panel { width: 100%; display: flex; flex-direction: column; align-items: center; }
+    .quiz-panel.hidden { display: none; }
+
+    .quiz-instruction {
+      width: 100%; text-align: center; color: #9ca3af;
+      font-size: 0.88rem; margin-bottom: 0.75rem; line-height: 1.5;
+    }
+    .replay-btn {
+      background: none; border: 1px solid #374151; color: #9ca3af;
+      border-radius: 8px; padding: 0.38rem 1rem; cursor: pointer;
+      font-size: 0.82rem; margin-bottom: 1.1rem;
+      transition: background 0.12s; touch-action: manipulation;
+    }
+    .replay-btn:hover { background: #1f2937; }
+
+    .quiz-answer-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0.6rem; width: 100%; margin-bottom: 1rem;
+    }
+    .q-ans-btn {
+      background: #1f2937; border: 2px solid #374151; color: #e5e7eb;
+      border-radius: 10px; padding: 0.7rem 0.5rem;
+      cursor: pointer; font-size: 0.95rem; font-weight: 600;
+      transition: background 0.1s, border-color 0.1s;
+      touch-action: manipulation; min-height: 52px;
+    }
+    .q-ans-btn:hover:not(:disabled) { background: #374151; }
+    .q-ans-btn.is-correct  { background: #064e3b !important; border-color: #10b981 !important; color: #6ee7b7 !important; }
+    .q-ans-btn.is-wrong    { background: #3b1515 !important; border-color: #f87171 !important; color: #f87171 !important; }
+    .q-ans-btn:disabled    { cursor: default; opacity: 0.7; }
+
+    .quiz-result {
+      width: 100%; border-radius: 12px; padding: 1rem 1.25rem;
+      margin-bottom: 1rem; line-height: 1.55; font-size: 0.85rem; color: #d1d5db;
+    }
+    .quiz-result.is-correct { background: #064e3b; }
+    .quiz-result.is-wrong   { background: #3b1515; }
+    .quiz-result strong { color: #fff; font-size: 0.95rem; }
+    .quiz-result .why { margin-top: 0.4rem; color: #9ca3af; font-size: 0.8rem; }
+
+    .next-btn {
+      background: #1d4ed8; color: #bfdbfe; border: none;
+      border-radius: 8px; padding: 0.6rem 1.75rem;
+      cursor: pointer; font-size: 0.95rem; font-weight: 600;
+      transition: background 0.15s; touch-action: manipulation; min-height: 44px;
+    }
+    .next-btn:hover { background: #2563eb; }
+
+    .q2-chord-display {
+      width: 100%; background: #1f2937; border-radius: 14px;
+      padding: 1.25rem; text-align: center; margin-bottom: 1rem;
+    }
+    .q2-chord-name { font-size: 2.4rem; font-weight: 700; color: #f3f4f6; }
+    .q2-chord-type { font-size: 0.9rem; color: #6b7280; margin-top: 0.2rem; }
+    .q2-progress   { font-size: 0.82rem; color: #6b7280; margin-bottom: 0.75rem; }
+    .q2-progress strong { color: #10b981; }
+
     /* ── Mobile ── */
     @media (max-width: 540px) {
       body { padding: 1rem 0.6rem 2.5rem; }
@@ -396,6 +476,7 @@
   <button class="tab-btn"        id="tab-btn-scales"    onclick="showTab('scales')">Skalor</button>
   <button class="tab-btn"        id="tab-btn-chords"    onclick="showTab('chords')">Ackord</button>
   <button class="tab-btn"        id="tab-btn-prog"      onclick="showTab('prog')">Progressioner</button>
+  <button class="tab-btn"        id="tab-btn-quiz"      onclick="showTab('quiz')">Övning</button>
 </nav>
 
 <!-- ══ INTERVALLER ══════════════════════════════════════════ -->
@@ -497,6 +578,49 @@
 
   <div class="now-playing" id="now-playing"></div>
   <div class="piano-wrapper"><div class="piano" id="piano-prog"></div></div>
+
+</section>
+
+<!-- ══ ÖVNING ═══════════════════════════════════════════════ -->
+<section class="tab-section" id="tab-quiz">
+
+  <div class="quiz-sub-nav">
+    <button class="quiz-sub-btn active" id="qsub-btn-type"  onclick="showQuizEx('type')">Gissa ackordtyp</button>
+    <button class="quiz-sub-btn"        id="qsub-btn-tones" onclick="showQuizEx('tones')">Hitta ackordtoner</button>
+  </div>
+
+  <div class="quiz-score" id="quiz-score-display">Poäng: <strong>–</strong></div>
+
+  <!-- Exercise 1: Chord type -->
+  <div class="quiz-panel" id="qpanel-type">
+    <p class="quiz-instruction">Lyssna och titta på ackordet. Vilken typ är det?</p>
+    <button class="replay-btn" onclick="replayQ1()">♪ Spela igen</button>
+    <div class="piano-wrapper"><div class="piano" id="piano-q1"></div></div>
+    <div class="quiz-answer-grid" id="q1-btns"></div>
+    <div class="quiz-result hidden" id="q1-result"></div>
+    <button class="next-btn hidden" id="q1-next" onclick="newQ1()">Nästa fråga →</button>
+  </div>
+
+  <!-- Exercise 2: Chord tones -->
+  <div class="quiz-panel hidden" id="qpanel-tones">
+    <div class="q2-chord-display">
+      <div class="q2-chord-name" id="q2-name">–</div>
+      <div class="q2-chord-type" id="q2-type-label">–</div>
+    </div>
+    <p class="quiz-instruction">Klicka på de tre tonerna som bildar detta ackord på pianot</p>
+    <div class="q2-progress" id="q2-progress">0 / 3 toner funna</div>
+    <div class="piano-wrapper"><div class="piano" id="piano-q2"></div></div>
+    <div class="btn-row" style="margin-top:0.75rem">
+      <button class="reset-btn" id="q2-reveal" onclick="revealQ2()">Visa svar</button>
+      <button class="next-btn hidden" id="q2-next" onclick="newQ2()">Nästa fråga →</button>
+    </div>
+    <div class="quiz-result hidden" id="q2-result"></div>
+  </div>
+
+  <div class="btn-row" style="margin-top:1.5rem">
+    <button class="audio-btn" onclick="toggleAudio()">♪ Ljud: På</button>
+    <button class="reset-btn" onclick="resetQuizScore()">Återställ poäng</button>
+  </div>
 
 </section>
 
@@ -920,6 +1044,260 @@
     if (selectedDeg === null) return;
     applyChordHighlight(pattern);
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // QUIZ
+  // ═══════════════════════════════════════════════════════════
+
+  const QUIZ_TYPES = [
+    { id: 'major', sv: 'Dur',        en: 'Major' },
+    { id: 'minor', sv: 'Moll',       en: 'Minor' },
+    { id: 'dim',   sv: 'Förminskad', en: 'Dim'   },
+    { id: 'aug',   sv: 'Förstärkt',  en: 'Aug'   },
+  ];
+
+  let qScore     = { correct: 0, total: 0 };
+  let qExercise  = 'type'; // 'type' | 'tones'
+
+  // ── Shared helpers ──────────────────────────────────────────
+  function quizChordKeys(root, type, preferOct4 = true) {
+    const ivals = CHORD_INTERVALS[type];
+    let rootKey = null;
+    const start = preferOct4 ? 12 : 0;
+    for (let k = start; k < start + 12; k++) {
+      if (k % 12 === root) { rootKey = k; break; }
+    }
+    return ivals.map(iv => {
+      let k = rootKey + iv;
+      if (k >= SPAN) k -= 12;
+      return (k >= 0 && k < SPAN) ? k : null;
+    });
+  }
+
+  function randomChord() {
+    return {
+      root: Math.floor(Math.random() * 12),
+      type: QUIZ_TYPES[Math.floor(Math.random() * 4)].id,
+    };
+  }
+
+  function updateQuizScore() {
+    document.getElementById('quiz-score-display').innerHTML =
+      `Poäng: <strong>${qScore.correct} / ${qScore.total}</strong>`;
+  }
+
+  function resetQuizScore() {
+    qScore = { correct: 0, total: 0 };
+    updateQuizScore();
+  }
+
+  function showQuizEx(type) {
+    qExercise = type;
+    document.getElementById('qsub-btn-type').classList.toggle('active',  type === 'type');
+    document.getElementById('qsub-btn-tones').classList.toggle('active', type === 'tones');
+    document.getElementById('qpanel-type').classList.toggle('hidden',  type !== 'type');
+    document.getElementById('qpanel-tones').classList.toggle('hidden', type !== 'tones');
+  }
+
+  // ── Exercise 1: Guess chord type ────────────────────────────
+  const q1Km = {};
+  buildPiano('piano-q1', q1Km, () => {}); // clicks do nothing on q1 piano
+
+  let q1State = { root: null, type: null, answered: false };
+
+  // Build answer buttons once
+  const q1BtnsEl = document.getElementById('q1-btns');
+  QUIZ_TYPES.forEach(qt => {
+    const btn = document.createElement('button');
+    btn.className   = 'q-ans-btn';
+    btn.id          = `q1-ans-${qt.id}`;
+    btn.textContent = `${qt.sv} (${qt.en})`;
+    btn.onclick     = () => answerQ1(qt.id);
+    q1BtnsEl.appendChild(btn);
+  });
+
+  function newQ1() {
+    const c = randomChord();
+    q1State = { ...c, answered: false };
+
+    // Reset UI
+    document.getElementById('q1-result').classList.add('hidden');
+    document.getElementById('q1-next').classList.add('hidden');
+    document.querySelectorAll('.q-ans-btn').forEach(b => {
+      b.disabled = false;
+      b.classList.remove('is-correct', 'is-wrong');
+    });
+
+    // Highlight chord on piano (all tones same neutral color — no root hint)
+    for (let k = 0; k < SPAN; k++) setKeyClass(q1Km, k, null);
+    quizChordKeys(c.root, c.type).forEach(k => {
+      if (k !== null) setKeyClass(q1Km, k, 'is-quiz');
+    });
+
+    // Play chord
+    playQ1Chord();
+  }
+
+  function playQ1Chord() {
+    quizChordKeys(q1State.root, q1State.type).forEach(k => {
+      if (k !== null) playNote(k);
+    });
+  }
+
+  function replayQ1() { playQ1Chord(); }
+
+  function answerQ1(type) {
+    if (q1State.answered) return;
+    q1State.answered = true;
+
+    const correct   = type === q1State.type;
+    const rootName  = CB_ROOT_NAMES[q1State.root];
+    const typeSv    = QUIZ_TYPES.find(t => t.id === q1State.type).sv;
+    const chordName = rootName + (q1State.type === 'minor' ? 'm' : q1State.type === 'dim' ? 'dim' : q1State.type === 'aug' ? 'aug' : '');
+
+    qScore.total++;
+    if (correct) qScore.correct++;
+    updateQuizScore();
+
+    // Style buttons
+    document.querySelectorAll('.q-ans-btn').forEach(b => b.disabled = true);
+    document.getElementById(`q1-ans-${q1State.type}`).classList.add('is-correct');
+    if (!correct) document.getElementById(`q1-ans-${type}`).classList.add('is-wrong');
+
+    // Reveal root on piano (orange)
+    setKeyClass(q1Km, quizChordKeys(q1State.root, q1State.type)[0], 'is-scale-root');
+
+    // Result panel
+    const resultEl = document.getElementById('q1-result');
+    resultEl.className = `quiz-result ${correct ? 'is-correct' : 'is-wrong'}`;
+    resultEl.innerHTML = correct
+      ? `<strong>✓ Rätt!</strong> Det var <strong>${chordName}</strong> — ${typeSv}<div class="why">${chordWhy(q1State.type)}</div>`
+      : `<strong>✗ Fel.</strong> Det var <strong>${chordName}</strong> — ${typeSv}<div class="why">${chordWhy(q1State.type)}</div>`;
+    resultEl.classList.remove('hidden');
+    document.getElementById('q1-next').classList.remove('hidden');
+  }
+
+  // ── Exercise 2: Find chord tones ────────────────────────────
+  const q2Km = {};
+  buildPiano('piano-q2', q2Km, onQ2Key);
+
+  let q2State = {
+    root: null, type: null,
+    correctNIs: [],   // correct pitch classes (0-11)
+    found: new Set(), // found pitch classes
+    answered: false,
+    revealed: false,
+    wrongClicks: 0,
+  };
+
+  function newQ2() {
+    const c = randomChord();
+    q2State = {
+      ...c,
+      correctNIs: CHORD_INTERVALS[c.type].map(iv => (c.root + iv) % 12),
+      found: new Set(),
+      answered: false, revealed: false, wrongClicks: 0,
+    };
+
+    // UI reset
+    for (let k = 0; k < SPAN; k++) setKeyClass(q2Km, k, null);
+    document.getElementById('q2-result').classList.add('hidden');
+    document.getElementById('q2-next').classList.add('hidden');
+    document.getElementById('q2-reveal').disabled = false;
+
+    // Update chord display
+    const rootName  = CB_ROOT_NAMES[c.root];
+    const suffix    = c.type === 'minor' ? 'm' : c.type === 'dim' ? 'dim' : c.type === 'aug' ? 'aug' : '';
+    const typeSv    = QUIZ_TYPES.find(t => t.id === c.type).sv;
+    document.getElementById('q2-name').textContent = rootName + suffix;
+    document.getElementById('q2-type-label').textContent = `${rootName}-${typeSv.toLowerCase()} — ${typeSv}`;
+    updateQ2Progress();
+  }
+
+  function onQ2Key(keyIndex) {
+    if (q2State.answered || q2State.revealed) return;
+    const ni = keyIndex % 12;
+    if (q2State.found.has(ni)) return; // already found this pitch class
+
+    playNote(keyIndex);
+
+    if (q2State.correctNIs.includes(ni)) {
+      // Correct — highlight ALL keys with this pitch class
+      q2State.found.add(ni);
+      for (let k = 0; k < SPAN; k++) {
+        if (q2Km[k] && k % 12 === ni) setKeyClass(q2Km, k, 'is-chord');
+      }
+      updateQ2Progress();
+
+      if (q2State.found.size === 3) {
+        q2State.answered = true;
+        const correct = q2State.wrongClicks === 0 && !q2State.revealed;
+        qScore.total++;
+        if (correct) qScore.correct++;
+        updateQuizScore();
+
+        const resultEl = document.getElementById('q2-result');
+        resultEl.className = `quiz-result ${correct ? 'is-correct' : 'is-wrong'}`;
+        resultEl.innerHTML = correct
+          ? `<strong>✓ Rätt!</strong> Alla tre toner hittade utan felklick.`
+          : `<strong>Bra jobbat!</strong> Du hittade alla toner${q2State.wrongClicks > 0 ? ` (${q2State.wrongClicks} felklick)` : ''}.`;
+        resultEl.classList.remove('hidden');
+        document.getElementById('q2-next').classList.remove('hidden');
+        document.getElementById('q2-reveal').disabled = true;
+      }
+    } else {
+      // Wrong — flash red briefly
+      q2State.wrongClicks++;
+      setKeyClass(q2Km, keyIndex, 'is-wrong-flash');
+      setTimeout(() => setKeyClass(q2Km, keyIndex, null), 500);
+    }
+  }
+
+  function updateQ2Progress() {
+    document.getElementById('q2-progress').innerHTML =
+      `<strong>${q2State.found.size}</strong> / 3 toner funna`;
+  }
+
+  function revealQ2() {
+    if (q2State.answered) return;
+    q2State.revealed = true;
+    q2State.answered = true;
+    document.getElementById('q2-reveal').disabled = true;
+
+    // Highlight all correct keys
+    q2State.correctNIs.forEach(ni => {
+      for (let k = 0; k < SPAN; k++) {
+        if (q2Km[k] && k % 12 === ni) setKeyClass(q2Km, k, 'is-chord');
+      }
+    });
+    // Play chord
+    quizChordKeys(q2State.root, q2State.type).forEach(k => { if (k) playNote(k); });
+
+    const ivals = CHORD_INTERVALS[q2State.type];
+    const t1 = CB_ROOT_NAMES[q2State.root];
+    const t3 = chordToneName(q2State.root, 2, ivals[1]);
+    const t5 = chordToneName(q2State.root, 4, ivals[2]);
+
+    qScore.total++;
+    updateQuizScore();
+
+    const resultEl = document.getElementById('q2-result');
+    resultEl.className = 'quiz-result is-wrong';
+    resultEl.innerHTML = `Svaret är: <strong>${t1} – ${t3} – ${t5}</strong><div class="why">${chordWhy(q2State.type)}</div>`;
+    resultEl.classList.remove('hidden');
+    document.getElementById('q2-next').classList.remove('hidden');
+    document.getElementById('q2-progress').innerHTML = `<strong>3</strong> / 3 toner funna`;
+  }
+
+  // Init quiz when tab is first shown
+  const origShowTab = showTab;
+  window.showTab = function(name) {
+    origShowTab(name);
+    if (name === 'quiz') {
+      if (q1State.root === null) newQ1();
+      if (q2State.root === null) newQ2();
+    }
+  };
 
   // ═══════════════════════════════════════════════════════════
   // PROGRESSIONS
