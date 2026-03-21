@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Musikteori</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #111827;
+      color: #e5e7eb;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 3rem;
+    }
+
+    /* ── Header ── */
+    header { text-align: center; margin-bottom: 1.5rem; }
+    header h1 { font-size: 1.6rem; color: #c4b5fd; letter-spacing: -0.02em; }
+    header p  { color: #6b7280; font-size: 0.9rem; margin-top: 0.3rem; }
+
+    /* ── Tabs ── */
+    .tab-nav {
+      display: flex;
+      gap: 0.4rem;
+      background: #1f2937;
+      padding: 0.35rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      padding: 0.45rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.12s, color 0.12s;
+    }
+    .tab-btn:hover  { background: #374151; color: #e5e7eb; }
+    .tab-btn.active { background: #374151; color: #c4b5fd; font-weight: 600; }
+
+    .tab-section { display: none; width: 100%; max-width: 620px; flex-direction: column; align-items: center; }
+    .tab-section.active { display: flex; }
+
+    /* ── Piano (shared) ── */
+    .piano-wrapper {
+      overflow-x: auto;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.75rem;
+      padding-bottom: 0.5rem;
+    }
+    .piano { position: relative; display: flex; height: 160px; flex-shrink: 0; }
+
+    .key-w {
+      position: relative;
+      width: 38px; height: 160px;
+      background: #f5f5ef;
+      border: 1px solid #bbb;
+      border-radius: 0 0 6px 6px;
+      cursor: pointer;
+      transition: background 0.08s;
+      z-index: 1;
+      user-select: none;
+    }
+    .key-w:hover             { background: #ddd; }
+    .key-w.is-root           { background: #f59e0b; }
+    .key-w.is-target         { background: #60a5fa; }
+    .key-w.is-scale          { background: #7c3aed; }
+    .key-w.is-scale-root     { background: #f59e0b; }
+    .key-w.is-chord          { background: #059669; }
+    .key-w .k-label {
+      position: absolute;
+      bottom: 8px; left: 0; right: 0;
+      text-align: center;
+      font-size: 0.65rem;
+      color: #555;
+      pointer-events: none;
+      line-height: 1.3;
+    }
+    .key-w.is-root   .k-label,
+    .key-w.is-target .k-label,
+    .key-w.is-scale  .k-label,
+    .key-w.is-scale-root .k-label,
+    .key-w.is-chord  .k-label { color: #fff; font-weight: 700; }
+
+    .key-b {
+      position: absolute; top: 0;
+      width: 24px; height: 100px;
+      background: #1f2937;
+      border-radius: 0 0 4px 4px;
+      cursor: pointer;
+      z-index: 2;
+      transition: background 0.08s;
+      user-select: none;
+      display: flex; align-items: flex-end; justify-content: center;
+      padding-bottom: 5px;
+    }
+    .key-b:hover         { background: #374151; }
+    .key-b.is-root       { background: #d97706; }
+    .key-b.is-target     { background: #3b82f6; }
+    .key-b.is-scale      { background: #6d28d9; }
+    .key-b.is-scale-root { background: #d97706; }
+    .key-b.is-chord      { background: #047857; }
+    .key-b .k-label-b {
+      font-size: 0.5rem; color: rgba(255,255,255,0.8);
+      font-weight: 700; pointer-events: none; text-align: center; line-height: 1.2;
+    }
+
+    /* ── Info panel (intervals) ── */
+    .info-panel {
+      width: 100%;
+      background: #1f2937;
+      border-radius: 14px;
+      padding: 1.75rem 1.5rem;
+      margin-bottom: 1.5rem;
+      min-height: 170px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+    }
+    .hint { color: #6b7280; font-size: 0.95rem; line-height: 1.6; }
+    .hint strong { color: #9ca3af; }
+    .result-name-sv { font-size: 2rem; font-weight: 700; color: #a78bfa; }
+    .result-name-en { font-size: 1rem; color: #9ca3af; margin-top: 0.2rem; margin-bottom: 1.25rem; }
+    .stats { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .stat { background: #111827; border-radius: 10px; padding: 0.6rem 1rem; min-width: 90px; }
+    .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.07em; color: #6b7280; margin-bottom: 0.3rem; }
+    .stat-value { font-size: 1.4rem; font-weight: 700; color: #f3f4f6; }
+    .stat-sub { font-size: 0.7rem; color: #9ca3af; margin-top: 0.1rem; }
+    .root-note { font-size: 1.5rem; font-weight: 700; color: #f59e0b; margin-bottom: 0.4rem; }
+
+    /* ── Reference table ── */
+    .ref-section { width: 100%; margin-bottom: 1.5rem; }
+    .ref-toggle {
+      background: none; border: 1px solid #374151; color: #9ca3af;
+      padding: 0.45rem 1rem; border-radius: 8px; cursor: pointer;
+      font-size: 0.85rem; width: 100%; text-align: center;
+      transition: background 0.15s; margin-bottom: 0.75rem;
+    }
+    .ref-toggle:hover { background: #1f2937; }
+    .ref-table { display: none; width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .ref-table.open { display: table; }
+    .ref-table th, .ref-table td { padding: 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid #1f2937; }
+    .ref-table th { color: #6b7280; font-weight: 600; background: #111827; }
+    .ref-table td { color: #d1d5db; }
+    .ref-table tr:hover td { background: #1f2937; }
+    .ref-table .td-sv  { font-weight: 600; color: #e5e7eb; }
+    .ref-table .td-deg { font-family: monospace; color: #a78bfa; font-weight: 700; }
+    .ref-table .td-sem { color: #60a5fa; font-weight: 700; }
+
+    /* ── Buttons ── */
+    .btn-row { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1.25rem; }
+    .reset-btn, .audio-btn {
+      background: #374151; color: #d1d5db; border: none;
+      border-radius: 8px; padding: 0.5rem 1.2rem;
+      cursor: pointer; font-size: 0.9rem; transition: background 0.15s;
+    }
+    .reset-btn:hover, .audio-btn:hover { background: #4b5563; }
+    .audio-btn.muted { color: #6b7280; }
+
+    .notation-note { font-size: 0.75rem; color: #6b7280; text-align: center; }
+
+    /* ── Scale: selectors ── */
+    .selector-group { width: 100%; margin-bottom: 1rem; }
+    .selector-label {
+      font-size: 0.72rem; text-transform: uppercase;
+      letter-spacing: 0.07em; color: #6b7280; margin-bottom: 0.45rem;
+    }
+    .selector-btns { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .sel-btn {
+      background: #1f2937; border: 1px solid #374151; color: #d1d5db;
+      border-radius: 8px; padding: 0.38rem 0.7rem;
+      cursor: pointer; font-size: 0.82rem; transition: background 0.1s, border-color 0.1s;
+    }
+    .sel-btn:hover { background: #374151; }
+    .sel-btn.active-type  { background: #4c1d95; border-color: #7c3aed; color: #ede9fe; font-weight: 600; }
+    .sel-btn.active-root  { background: #92400e; border-color: #f59e0b; color: #fef3c7; font-weight: 600; }
+
+    /* ── Scale: info box ── */
+    .scale-info {
+      width: 100%; background: #1f2937; border-radius: 14px;
+      padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+    }
+    .scale-title { font-size: 1.25rem; font-weight: 700; color: #c4b5fd; margin-bottom: 0.75rem; }
+    .scale-title span { color: #6b7280; font-size: 0.85rem; font-weight: 400; margin-left: 0.4rem; }
+    .scale-tones {
+      display: flex; align-items: center; flex-wrap: wrap;
+      gap: 0; margin-bottom: 0.8rem;
+    }
+    .tone-bubble {
+      background: #4c1d95; color: #ede9fe;
+      border-radius: 6px; padding: 0.28rem 0.5rem;
+      font-weight: 700; font-size: 0.85rem;
+    }
+    .tone-bubble.is-root-bubble { background: #92400e; color: #fef3c7; }
+    .tone-step { color: #6b7280; font-size: 0.72rem; padding: 0 0.35rem; font-weight: 600; }
+    .tone-step.half { color: #f87171; }
+    .scale-explain { font-size: 0.82rem; color: #9ca3af; line-height: 1.55; }
+    .scale-explain strong { color: #e5e7eb; }
+    .scale-relative { margin-top: 0.6rem; font-size: 0.8rem; color: #6b7280; }
+    .scale-relative strong { color: #a78bfa; }
+
+    /* ── Scale: diatonic chords ── */
+    .section-label {
+      width: 100%; font-size: 0.72rem; text-transform: uppercase;
+      letter-spacing: 0.07em; color: #6b7280; margin-bottom: 0.75rem;
+    }
+    .chord-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: 0.65rem; width: 100%; margin-bottom: 1.5rem;
+    }
+    .chord-card {
+      background: #1f2937; border: 1px solid #374151;
+      border-radius: 12px; padding: 0.85rem 1rem;
+      cursor: pointer; transition: background 0.1s, border-color 0.1s;
+    }
+    .chord-card:hover    { background: #253347; border-color: #4b5563; }
+    .chord-card.selected { background: #064e3b; border-color: #10b981; }
+    .chord-top { display: flex; align-items: baseline; gap: 0.45rem; margin-bottom: 0.4rem; }
+    .chord-numeral { font-size: 1rem; font-weight: 700; color: #a78bfa; font-style: italic; }
+    .chord-name   { font-size: 1.05rem; font-weight: 700; color: #f3f4f6; }
+    .chord-badge {
+      display: inline-block; font-size: 0.65rem; font-weight: 600;
+      padding: 0.12rem 0.45rem; border-radius: 4px;
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.45rem;
+    }
+    .badge-major { background: #1e3a5f; color: #60a5fa; }
+    .badge-minor { background: #2d1b4e; color: #a78bfa; }
+    .badge-dim   { background: #3b1515; color: #f87171; }
+    .chord-tones { font-size: 0.78rem; color: #9ca3af; margin-bottom: 0.35rem; }
+    .chord-why   { font-size: 0.7rem;  color: #6b7280; line-height: 1.4; }
+    .chord-why strong { color: #9ca3af; }
+
+    .chord-hint { font-size: 0.8rem; color: #6b7280; text-align: center; margin-bottom: 0.75rem; }
+
+    /* ── Chord builder ── */
+    .chord-builder-name {
+      font-size: 2rem; font-weight: 700; color: #c4b5fd; margin-bottom: 0.2rem;
+    }
+    .chord-builder-name-en { font-size: 1rem; color: #6b7280; margin-bottom: 1.25rem; }
+
+    .chord-tone-table {
+      width: 100%; border-collapse: collapse; margin-bottom: 1.25rem;
+    }
+    .chord-tone-table th {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em;
+      color: #6b7280; padding: 0.4rem 0.75rem; text-align: left;
+      border-bottom: 1px solid #374151;
+    }
+    .chord-tone-table td {
+      padding: 0.5rem 0.75rem; border-bottom: 1px solid #1f2937;
+    }
+    .ctt-note   { font-size: 1.1rem; font-weight: 700; color: #f3f4f6; }
+    .ctt-root   { color: #f59e0b; }
+    .ctt-semi   { font-size: 1rem; color: #60a5fa; font-weight: 600; }
+    .ctt-degree { font-family: monospace; font-size: 1rem; color: #a78bfa; font-weight: 700; }
+
+    .chord-structure {
+      background: #111827; border-radius: 10px; padding: 0.9rem 1rem;
+      margin-bottom: 0; font-size: 0.82rem; color: #9ca3af; line-height: 1.6;
+    }
+    .chord-structure strong { color: #e5e7eb; }
+    .chord-structure .struct-line {
+      display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+      margin-bottom: 0.3rem;
+    }
+    .struct-pill {
+      background: #1f2937; border-radius: 6px; padding: 0.2rem 0.55rem;
+      font-size: 0.78rem; font-weight: 600;
+    }
+    .struct-plus  { color: #6b7280; }
+    .struct-arrow { color: #6b7280; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Musikteori</h1>
+  <p>Music Theory — Interaktiv utforskare</p>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" id="tab-btn-intervals" onclick="showTab('intervals')">Intervaller</button>
+  <button class="tab-btn"        id="tab-btn-scales"    onclick="showTab('scales')">Skalor</button>
+  <button class="tab-btn"        id="tab-btn-chords"    onclick="showTab('chords')">Ackord</button>
+</nav>
+
+<!-- ══ INTERVALLER ══════════════════════════════════════════ -->
+<section class="tab-section active" id="tab-intervals">
+
+  <div class="piano-wrapper"><div class="piano" id="piano-iv"></div></div>
+
+  <div class="info-panel" id="info-iv">
+    <p class="hint">
+      <strong>1.</strong> Klicka på en ton → grundton&nbsp;&nbsp;
+      <strong>2.</strong> Klicka på en annan ton → se intervallet
+    </p>
+  </div>
+
+  <section class="ref-section">
+    <button class="ref-toggle" onclick="toggleRef()">Visa alla intervaller / Show all intervals ▾</button>
+    <table class="ref-table" id="refTable">
+      <thead>
+        <tr><th>Halvtoner</th><th>Svenska</th><th>English</th><th>Skalsteg</th></tr>
+      </thead>
+      <tbody id="refBody"></tbody>
+    </table>
+  </section>
+
+  <div class="btn-row">
+    <button class="reset-btn" onclick="resetIv()">Återställ / Reset</button>
+    <button class="audio-btn" onclick="toggleAudio()">♪ Ljud: På</button>
+  </div>
+  <p class="notation-note">
+    Obs: I svensk notation skrivs B♮ ofta som <strong>H</strong> och B♭ som <strong>B</strong>. Här används internationell notation.
+  </p>
+
+</section>
+
+<!-- ══ SKALOR ════════════════════════════════════════════════ -->
+<section class="tab-section" id="tab-scales">
+
+  <div class="selector-group">
+    <div class="selector-label">Grundton / Root note</div>
+    <div class="selector-btns" id="root-btns"></div>
+  </div>
+
+  <div class="selector-group">
+    <div class="selector-label">Skala / Scale type</div>
+    <div class="selector-btns">
+      <button class="sel-btn active-type" id="scale-btn-major" onclick="selectScaleType('major')">Durskala (Major)</button>
+      <button class="sel-btn"             id="scale-btn-minor" onclick="selectScaleType('minor')">Naturlig mollskala (Natural Minor)</button>
+    </div>
+  </div>
+
+  <div class="piano-wrapper"><div class="piano" id="piano-sc"></div></div>
+
+  <div class="scale-info" id="scale-info"></div>
+
+  <div class="section-label">Diatoniska ackord / Diatonic Chords</div>
+  <p class="chord-hint">Klicka på ett ackord för att se och höra det</p>
+  <div class="chord-grid" id="chord-grid"></div>
+
+  <div class="btn-row">
+    <button class="audio-btn" onclick="toggleAudio()">♪ Ljud: På</button>
+  </div>
+
+</section>
+
+<!-- ══ ACKORD ═══════════════════════════════════════════════ -->
+<section class="tab-section" id="tab-chords">
+
+  <div class="selector-group">
+    <div class="selector-label">Grundton / Root note</div>
+    <div class="selector-btns" id="cb-root-btns"></div>
+  </div>
+
+  <div class="selector-group">
+    <div class="selector-label">Ackordtyp / Chord type</div>
+    <div class="selector-btns" id="cb-type-btns"></div>
+  </div>
+
+  <div class="piano-wrapper"><div class="piano" id="piano-cb"></div></div>
+
+  <div class="info-panel" id="cb-info" style="flex-direction:column;min-height:220px;">
+    <p class="hint">Välj grundton och typ ovan</p>
+  </div>
+
+  <div class="btn-row" style="margin-top:1rem;">
+    <button class="audio-btn" onclick="toggleAudio()">♪ Ljud: På</button>
+  </div>
+
+</section>
+
+<script>
+  // ═══════════════════════════════════════════════════════════
+  // SHARED CONSTANTS
+  // ═══════════════════════════════════════════════════════════
+  const NOTES     = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const WHITE_POS = [0, null, 1, null, 2, 3, null, 4, null, 5, null, 6];
+  const W         = 38;
+  const START_OCT = 3;
+  const SPAN      = 25; // C3–C5
+
+  // ═══════════════════════════════════════════════════════════
+  // AUDIO
+  // ═══════════════════════════════════════════════════════════
+  let audioCtx     = null;
+  let masterOut    = null;
+  let audioEnabled = true;
+
+  function initAudio() {
+    if (audioCtx) { if (audioCtx.state === 'suspended') audioCtx.resume(); return; }
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    masterOut = audioCtx.createDynamicsCompressor();
+    masterOut.connect(audioCtx.destination);
+  }
+
+  function noteToFreq(keyIndex) {
+    const midi = (START_OCT + Math.floor(keyIndex / 12) + 1) * 12 + (keyIndex % 12);
+    return 440 * Math.pow(2, (midi - 69) / 12);
+  }
+
+  function playNote(keyIndex) {
+    if (!audioEnabled) return;
+    initAudio();
+    const freq = noteToFreq(keyIndex);
+    const now  = audioCtx.currentTime;
+    const env  = audioCtx.createGain();
+    env.connect(masterOut);
+    [
+      { mult: 1, gain: 0.55, type: 'triangle' },
+      { mult: 2, gain: 0.18, type: 'sine' },
+      { mult: 3, gain: 0.09, type: 'sine' },
+      { mult: 4, gain: 0.04, type: 'sine' },
+    ].forEach(h => {
+      const osc = audioCtx.createOscillator();
+      const g   = audioCtx.createGain();
+      osc.type = h.type; osc.frequency.value = freq * h.mult; g.gain.value = h.gain;
+      osc.connect(g); g.connect(env); osc.start(now); osc.stop(now + 2.5);
+    });
+    env.gain.setValueAtTime(0, now);
+    env.gain.linearRampToValueAtTime(0.5,    now + 0.012);
+    env.gain.exponentialRampToValueAtTime(0.18, now + 0.35);
+    env.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
+  }
+
+  function toggleAudio() {
+    audioEnabled = !audioEnabled;
+    document.querySelectorAll('.audio-btn').forEach(btn => {
+      btn.textContent = audioEnabled ? '♪ Ljud: På' : '♪ Ljud: Av';
+      btn.classList.toggle('muted', !audioEnabled);
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // PIANO BUILDER
+  // ═══════════════════════════════════════════════════════════
+  function buildPiano(containerId, km, onClick) {
+    const piano = document.getElementById(containerId);
+    piano.innerHTML = '';
+    const wPos = []; let wCount = 0;
+    for (let i = 0; i < SPAN; i++)
+      wPos.push(WHITE_POS[i % 12] !== null ? wCount++ : null);
+
+    piano.style.cssText = `width:${wCount * W}px;position:relative;height:160px;`;
+
+    for (let i = 0; i < SPAN; i++) {
+      if (wPos[i] === null) continue;
+      const ni = i % 12, oct = START_OCT + Math.floor(i / 12);
+      const el = document.createElement('div');
+      el.className = 'key-w';
+      el.innerHTML = `<span class="k-label">${NOTES[ni]}<br><span style="font-size:0.55rem;color:#aaa">${oct}</span></span>`;
+      el.addEventListener('click', () => onClick(i));
+      piano.appendChild(el);
+      km[i] = { el, isWhite: true, noteIndex: ni, octave: oct };
+    }
+    for (let i = 0; i < SPAN; i++) {
+      if (wPos[i] !== null) continue;
+      const ni = i % 12, oct = START_OCT + Math.floor(i / 12);
+      const left = wPos[i - 1] * W + W - 12;
+      const el = document.createElement('div');
+      el.className  = 'key-b';
+      el.style.left = left + 'px';
+      el.innerHTML  = '<span class="k-label-b"></span>';
+      el.addEventListener('click', () => onClick(i));
+      piano.appendChild(el);
+      km[i] = { el, isWhite: false, noteIndex: ni, octave: oct };
+    }
+  }
+
+  function setKeyClass(km, i, cls) {
+    const k = km[i]; if (!k) return;
+    k.el.className = (k.isWhite ? 'key-w' : 'key-b') + (cls ? ' ' + cls : '');
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // TABS
+  // ═══════════════════════════════════════════════════════════
+  function showTab(name) {
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('tab-btn-' + name).classList.add('active');
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // INTERVALS
+  // ═══════════════════════════════════════════════════════════
+  const INTERVALS = [
+    { sv: 'Prim',          en: 'Unison',       degree: '1',     semitones: 0  },
+    { sv: 'Liten sekund',  en: 'Minor 2nd',    degree: 'b2',    semitones: 1  },
+    { sv: 'Stor sekund',   en: 'Major 2nd',    degree: '2',     semitones: 2  },
+    { sv: 'Liten ters',    en: 'Minor 3rd',    degree: 'b3',    semitones: 3  },
+    { sv: 'Stor ters',     en: 'Major 3rd',    degree: '3',     semitones: 4  },
+    { sv: 'Kvart',         en: 'Perfect 4th',  degree: '4',     semitones: 5  },
+    { sv: 'Tritonus',      en: 'Tritone',      degree: '#4/b5', semitones: 6  },
+    { sv: 'Kvint',         en: 'Perfect 5th',  degree: '5',     semitones: 7  },
+    { sv: 'Liten sext',    en: 'Minor 6th',    degree: 'b6',    semitones: 8  },
+    { sv: 'Stor sext',     en: 'Major 6th',    degree: '6',     semitones: 9  },
+    { sv: 'Liten septima', en: 'Minor 7th',    degree: 'b7',    semitones: 10 },
+    { sv: 'Stor septima',  en: 'Major 7th',    degree: '7',     semitones: 11 },
+    { sv: 'Oktav',         en: 'Octave',       degree: '8 (1)', semitones: 12 },
+  ];
+
+  const ivKm = {};
+  buildPiano('piano-iv', ivKm, onIvKey);
+
+  let ivRoot = null, ivTarget = null;
+  const infoIv = document.getElementById('info-iv');
+
+  function onIvKey(i) {
+    if (ivRoot === null) {
+      ivRoot = i; setKeyClass(ivKm, i, 'is-root');
+      infoIv.innerHTML = `<div><div class="root-note">${NOTES[ivKm[i].noteIndex]}${ivKm[i].octave}</div><div class="hint">Grundton vald — klicka på en annan ton</div></div>`;
+      playNote(i);
+    } else if (i === ivRoot) {
+      resetIv();
+    } else {
+      if (ivTarget !== null) setKeyClass(ivKm, ivTarget, null);
+      ivTarget = i; setKeyClass(ivKm, i, 'is-target');
+      const rawSemi = i - ivRoot;
+      const absSemi = Math.abs(rawSemi);
+      const iv = INTERVALS[absSemi > 12 ? (absSemi % 12 || 12) : absSemi];
+      const rk = ivKm[ivRoot], tk = ivKm[i];
+      infoIv.innerHTML = `<div style="width:100%">
+        <div class="result-name-sv">${iv.sv}</div>
+        <div class="result-name-en">${iv.en}</div>
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Halvtoner / Semitones</div><div class="stat-value">${absSemi}</div><div class="stat-sub">${rawSemi >= 0 ? '↑ upp' : '↓ ned'}</div></div>
+          <div class="stat"><div class="stat-label">Skalsteg / Scale Degree</div><div class="stat-value">${iv.degree}</div></div>
+          <div class="stat"><div class="stat-label">Toner / Notes</div><div class="stat-value" style="font-size:1.1rem">${NOTES[rk.noteIndex]} → ${NOTES[tk.noteIndex]}</div><div class="stat-sub">okt ${rk.octave} → ${tk.octave}</div></div>
+        </div></div>`;
+      playNote(ivRoot); setTimeout(() => playNote(i), 550);
+    }
+  }
+
+  function resetIv() {
+    if (ivRoot   !== null) setKeyClass(ivKm, ivRoot,   null);
+    if (ivTarget !== null) setKeyClass(ivKm, ivTarget, null);
+    ivRoot = null; ivTarget = null;
+    infoIv.innerHTML = `<p class="hint"><strong>1.</strong> Klicka på en ton → grundton&nbsp;&nbsp;<strong>2.</strong> Klicka på en annan ton → se intervallet</p>`;
+  }
+
+  const refBody = document.getElementById('refBody');
+  INTERVALS.forEach(iv => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="td-sem">${iv.semitones}</td><td class="td-sv">${iv.sv}</td><td>${iv.en}</td><td class="td-deg">${iv.degree}</td>`;
+    refBody.appendChild(tr);
+  });
+
+  function toggleRef() {
+    const t = document.getElementById('refTable');
+    const btn = document.querySelector('.ref-toggle');
+    t.classList.toggle('open');
+    btn.textContent = t.classList.contains('open') ? 'Dölj intervaller / Hide intervals ▴' : 'Visa alla intervaller / Show all intervals ▾';
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // SCALES
+  // ═══════════════════════════════════════════════════════════
+  const SCALE_PATTERNS = {
+    major: [0, 2, 4, 5, 7, 9, 11],
+    minor: [0, 2, 3, 5, 7, 8, 10],
+  };
+  const STEP_PATTERNS = {
+    major: [2,2,1,2,2,2,1],
+    minor: [2,1,2,2,1,2,2],
+  };
+
+  // Proper note names for all 24 keys (index = chromatic root 0–11)
+  const SCALE_NOTE_NAMES = {
+    major: [
+      ['C','D','E','F','G','A','B'],
+      ['Db','Eb','F','Gb','Ab','Bb','C'],
+      ['D','E','F#','G','A','B','C#'],
+      ['Eb','F','G','Ab','Bb','C','D'],
+      ['E','F#','G#','A','B','C#','D#'],
+      ['F','G','A','Bb','C','D','E'],
+      ['F#','G#','A#','B','C#','D#','E#'],
+      ['G','A','B','C','D','E','F#'],
+      ['Ab','Bb','C','Db','Eb','F','G'],
+      ['A','B','C#','D','E','F#','G#'],
+      ['Bb','C','D','Eb','F','G','A'],
+      ['B','C#','D#','E','F#','G#','A#'],
+    ],
+    minor: [
+      ['C','D','Eb','F','G','Ab','Bb'],
+      ['C#','D#','E','F#','G#','A','B'],
+      ['D','E','F','G','A','Bb','C'],
+      ['Eb','F','Gb','Ab','Bb','Cb','Db'],
+      ['E','F#','G','A','B','C','D'],
+      ['F','G','Ab','Bb','C','Db','Eb'],
+      ['F#','G#','A','B','C#','D','E'],
+      ['G','A','Bb','C','D','Eb','F'],
+      ['G#','A#','B','C#','D#','E','F#'],
+      ['A','B','C','D','E','F','G'],
+      ['Bb','C','Db','Eb','F','Gb','Ab'],
+      ['B','C#','D','E','F#','G','A'],
+    ],
+  };
+
+  const ROOT_DISPLAY   = ['C','C#/Db','D','D#/Eb','E','F','F#/Gb','G','G#/Ab','A','A#/Bb','B'];
+  const CHORD_QUALITIES = {
+    major: ['major','minor','minor','major','major','minor','dim'],
+    minor: ['minor','dim','major','minor','minor','major','major'],
+  };
+  const ROMAN = ['I','II','III','IV','V','VI','VII'];
+  const CHORD_INTERVALS = { major: [0,4,7], minor: [0,3,7], dim: [0,3,6] };
+
+  function chordWhy(type) {
+    if (type === 'major') return '<strong>Stor ters</strong> (4 ht) + <strong>liten ters</strong> (3 ht) → durklang';
+    if (type === 'minor') return '<strong>Liten ters</strong> (3 ht) + <strong>stor ters</strong> (4 ht) → mollklang';
+    return '<strong>Liten ters</strong> (3 ht) + <strong>liten ters</strong> (3 ht) → förminskad';
+  }
+
+  let scaleRoot = 9; // A
+  let scaleType = 'major';
+  let selectedDeg = null;
+  const scKm = {};
+
+  // Root buttons
+  const rootBtnsEl = document.getElementById('root-btns');
+  NOTES.forEach((_, i) => {
+    const btn = document.createElement('button');
+    btn.className   = 'sel-btn' + (i === scaleRoot ? ' active-root' : '');
+    btn.textContent = ROOT_DISPLAY[i];
+    btn.id          = `root-btn-${i}`;
+    btn.onclick     = () => selectRoot(i);
+    rootBtnsEl.appendChild(btn);
+  });
+
+  buildPiano('piano-sc', scKm, onScKey);
+  renderScale();
+
+  function selectRoot(i) {
+    document.querySelectorAll('#root-btns .sel-btn').forEach(b => b.classList.remove('active-root'));
+    document.getElementById(`root-btn-${i}`).classList.add('active-root');
+    scaleRoot = i; selectedDeg = null; renderScale();
+  }
+
+  function selectScaleType(type) {
+    document.getElementById('scale-btn-major').classList.toggle('active-type', type === 'major');
+    document.getElementById('scale-btn-minor').classList.toggle('active-type', type === 'minor');
+    scaleType = type; selectedDeg = null; renderScale();
+  }
+
+  function onScKey(i) { playNote(i); }
+
+  function renderScale() {
+    const pattern    = SCALE_PATTERNS[scaleType];
+    const steps      = STEP_PATTERNS[scaleType];
+    const noteNames  = SCALE_NOTE_NAMES[scaleType][scaleRoot];
+    const scaleNIs   = pattern.map(off => (scaleRoot + off) % 12); // note indices in scale
+
+    // ── Piano highlighting + labels ──────────────────────────
+    for (let k = 0; k < SPAN; k++) {
+      const km = scKm[k]; if (!km) continue;
+      const ni    = k % 12;
+      const degIdx = scaleNIs.indexOf(ni);  // 0–6 or -1
+
+      // Class
+      if (degIdx === 0)       setKeyClass(scKm, k, 'is-scale-root');
+      else if (degIdx !== -1) setKeyClass(scKm, k, 'is-scale');
+      else                    setKeyClass(scKm, k, null);
+
+      // Label
+      if (km.isWhite) {
+        const lbl = km.el.querySelector('.k-label');
+        if (degIdx !== -1) {
+          lbl.innerHTML = `<span style="font-size:0.7rem">${noteNames[degIdx]}</span><br><span style="font-size:0.58rem;opacity:0.85">${degIdx + 1}</span>`;
+        } else {
+          lbl.innerHTML = `${NOTES[ni]}<br><span style="font-size:0.55rem;color:#aaa">${START_OCT + Math.floor(k/12)}</span>`;
+        }
+      } else {
+        const lbl = km.el.querySelector('.k-label-b');
+        lbl.textContent = degIdx !== -1 ? noteNames[degIdx] : '';
+      }
+    }
+
+    // ── Scale info box ────────────────────────────────────────
+    const rootName = noteNames[0];
+    const typeSv   = scaleType === 'major' ? 'durskala'           : 'naturlig mollskala';
+    const typeEn   = scaleType === 'major' ? 'Major Scale'        : 'Natural Minor Scale';
+    const explainText = scaleType === 'major'
+      ? 'Mönstret är <strong>H–H–h–H–H–H–h</strong> (H = heltonsteg = 2 halvtoner, h = halvtonsteg = 1 halvton). Den ljusa, "glada" karaktären kommer framför allt från <strong>stor ters</strong> (4 halvtoner upp till steg 3).'
+      : 'Mönstret är <strong>H–h–H–H–h–H–H</strong>. Halvtonsstegen faller nu på 2→3 och 5→6. Det är framför allt <strong>liten ters</strong> (3 halvtoner upp till steg 3) som ger den mörkare, "sorgsnare" karaktären.';
+
+    // Relative key
+    const relRoot = scaleType === 'major'
+      ? (scaleRoot + 9) % 12
+      : (scaleRoot + 3) % 12;
+    const relName  = scaleType === 'major'
+      ? SCALE_NOTE_NAMES.minor[relRoot][0]
+      : SCALE_NOTE_NAMES.major[relRoot][0];
+    const relTypeSv = scaleType === 'major' ? 'mollskala' : 'durskala';
+
+    // Tone bubbles with step labels
+    let tonesHtml = '';
+    noteNames.forEach((name, i) => {
+      tonesHtml += `<span class="tone-bubble ${i === 0 ? 'is-root-bubble' : ''}">${name}</span>`;
+      const s = steps[i];
+      if (s !== undefined) tonesHtml += `<span class="tone-step ${s === 1 ? 'half' : ''}">${s === 2 ? 'H' : 'h'}</span>`;
+    });
+    tonesHtml += `<span class="tone-bubble is-root-bubble">${rootName}</span>`;
+
+    document.getElementById('scale-info').innerHTML = `
+      <div class="scale-title">${rootName}-${typeSv} <span>${rootName} ${typeEn}</span></div>
+      <div class="scale-tones">${tonesHtml}</div>
+      <div class="scale-explain">${explainText}</div>
+      <div class="scale-relative"><strong>${relName}-${relTypeSv}</strong> är den relativa ${relTypeSv}n — den delar exakt samma sju toner.</div>
+    `;
+
+    // ── Diatonic chords ───────────────────────────────────────
+    renderChords(noteNames, pattern);
+
+    // If a chord was selected before, re-apply its highlight
+    if (selectedDeg !== null) applyChordHighlight(pattern);
+  }
+
+  function renderChords(noteNames, pattern) {
+    const qualities = CHORD_QUALITIES[scaleType];
+    const grid = document.getElementById('chord-grid');
+    grid.innerHTML = '';
+
+    qualities.forEach((type, deg) => {
+      const root   = noteNames[deg];
+      const third  = noteNames[(deg + 2) % 7];
+      const fifth  = noteNames[(deg + 4) % 7];
+      const suffix = type === 'minor' ? 'm' : type === 'dim' ? 'dim' : '';
+      const numeral = type === 'minor' ? ROMAN[deg].toLowerCase() : ROMAN[deg];
+      const badgeClass = `badge-${type}`;
+      const badgeLabel = type === 'major' ? 'Dur / Major' : type === 'minor' ? 'Moll / Minor' : 'Förminskad / Dim';
+
+      const card = document.createElement('div');
+      card.className = 'chord-card' + (selectedDeg === deg ? ' selected' : '');
+      card.innerHTML = `
+        <div class="chord-top">
+          <span class="chord-numeral">${numeral}</span>
+          <span class="chord-name">${root}${suffix}</span>
+        </div>
+        <span class="chord-badge ${badgeClass}">${badgeLabel}</span>
+        <div class="chord-tones">${root} – ${third} – ${fifth}</div>
+        <div class="chord-why">${chordWhy(type)}</div>
+      `;
+      card.addEventListener('click', () => selectChord(deg, noteNames, pattern));
+      grid.appendChild(card);
+    });
+  }
+
+  function selectChord(deg, noteNames, pattern) {
+    selectedDeg = selectedDeg === deg ? null : deg;
+    renderChords(noteNames, pattern);
+
+    // Reset scale colours first
+    const scaleNIs = pattern.map(off => (scaleRoot + off) % 12);
+    for (let k = 0; k < SPAN; k++) {
+      const ni = scKm[k]?.noteIndex;
+      const d  = scaleNIs.indexOf(ni);
+      if (d === 0)       setKeyClass(scKm, k, 'is-scale-root');
+      else if (d !== -1) setKeyClass(scKm, k, 'is-scale');
+      else               setKeyClass(scKm, k, null);
+    }
+
+    if (selectedDeg === null) return;
+    applyChordHighlight(pattern);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CHORD BUILDER
+  // ═══════════════════════════════════════════════════════════
+
+  // Preferred letter index for each chromatic note (0–11)
+  // Gives clean, single-accidental spellings for all chord types
+  const PREF_LETTER = [0,0,1,2,2,3,3,4,5,5,6,6];
+  // 0=C, 1=D, 2=E, 3=F, 4=G, 5=A, 6=B
+  // C, C#→C, D, Eb→E, E, F, F#→F, G, Ab→A, A, Bb→B, B
+
+  const LTR       = ['C','D','E','F','G','A','B'];
+  const LTR_SEMI  = [0, 2, 4, 5, 7, 9, 11]; // natural semitone of each letter
+
+  // Standard chord root display names (sharp/flat chosen for clean chord spelling)
+  const CB_ROOT_NAMES = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+
+  const CB_CHORD_TYPES = [
+    { id: 'major', sv: 'Dur',        en: 'Major',      intervals: [0,4,7],  degrees: ['1','3','5'] },
+    { id: 'minor', sv: 'Moll',       en: 'Minor',      intervals: [0,3,7],  degrees: ['1','b3','5'] },
+    { id: 'dim',   sv: 'Förminskad', en: 'Diminished', intervals: [0,3,6],  degrees: ['1','b3','b5'] },
+    { id: 'aug',   sv: 'Förstärkt',  en: 'Augmented',  intervals: [0,4,8],  degrees: ['1','3','#5'] },
+  ];
+
+  const CB_SUFFIX = { major: '', minor: 'm', dim: 'dim', aug: 'aug' };
+
+  // Returns the note name for a chord tone, ensuring unique letter names
+  function chordToneName(rootSemi, letterOffset, totalSemitones) {
+    const rootLetter  = PREF_LETTER[rootSemi];
+    const targetLetter = (rootLetter + letterOffset) % 7;
+    const natSemi     = LTR_SEMI[targetLetter];
+    const actualSemi  = (rootSemi + totalSemitones) % 12;
+    let acc = actualSemi - natSemi;
+    if (acc >  6) acc -= 12;
+    if (acc < -6) acc += 12;
+    const accStr = acc ===  1 ? '#' : acc === -1 ? 'b' :
+                   acc ===  2 ? '##': acc === -2 ? 'bb' : '';
+    return LTR[targetLetter] + accStr;
+  }
+
+  let cbRoot = 0;
+  let cbType = 'major';
+  const cbKm = {};
+
+  // Root buttons
+  CB_ROOT_NAMES.forEach((name, i) => {
+    const btn = document.createElement('button');
+    btn.className   = 'sel-btn' + (i === cbRoot ? ' active-root' : '');
+    btn.textContent = name;
+    btn.id          = `cb-root-btn-${i}`;
+    btn.onclick     = () => { cbRoot = i; renderChordBuilder(); updateCbRootBtns(); };
+    document.getElementById('cb-root-btns').appendChild(btn);
+  });
+
+  // Type buttons
+  CB_CHORD_TYPES.forEach(ct => {
+    const btn = document.createElement('button');
+    btn.className   = 'sel-btn' + (ct.id === cbType ? ' active-type' : '');
+    btn.textContent = `${ct.sv} (${ct.en})`;
+    btn.id          = `cb-type-btn-${ct.id}`;
+    btn.onclick     = () => { cbType = ct.id; renderChordBuilder(); updateCbTypeBtns(); };
+    document.getElementById('cb-type-btns').appendChild(btn);
+  });
+
+  function updateCbRootBtns() {
+    CB_ROOT_NAMES.forEach((_, i) => {
+      document.getElementById(`cb-root-btn-${i}`)
+        .classList.toggle('active-root', i === cbRoot);
+    });
+  }
+  function updateCbTypeBtns() {
+    CB_CHORD_TYPES.forEach(ct => {
+      document.getElementById(`cb-type-btn-${ct.id}`)
+        .classList.toggle('active-type', ct.id === cbType);
+    });
+  }
+
+  buildPiano('piano-cb', cbKm, k => playNote(k));
+  renderChordBuilder();
+
+  function renderChordBuilder() {
+    const ct        = CB_CHORD_TYPES.find(t => t.id === cbType);
+    const rootName  = CB_ROOT_NAMES[cbRoot];
+    const chordName = rootName + CB_SUFFIX[cbType];
+
+    // Compute tone names (letter offsets: 0=root, 2=third, 4=fifth)
+    const letterOffsets = [0, 2, 4];
+    const toneNames = ct.intervals.map((semi, i) =>
+      i === 0 ? rootName : chordToneName(cbRoot, letterOffsets[i], semi)
+    );
+
+    // Piano: highlight chord tones starting from lowest root in octave 4
+    for (let k = 0; k < SPAN; k++) setKeyClass(cbKm, k, null);
+
+    // Find root in octave 4 (indices 12–23) or fall back to octave 3
+    let rootKey = null;
+    for (let k = 12; k < 24; k++) { if (k % 12 === cbRoot) { rootKey = k; break; } }
+    if (rootKey === null) for (let k = 0; k < 12; k++) { if (k % 12 === cbRoot) { rootKey = k; break; } }
+
+    const chordKeys = ct.intervals.map(semi => {
+      let k = rootKey + semi;
+      if (k >= SPAN) k -= 12;
+      return (k >= 0 && k < SPAN) ? k : null;
+    });
+
+    chordKeys.forEach((k, i) => {
+      if (k === null) return;
+      setKeyClass(cbKm, k, i === 0 ? 'is-scale-root' : 'is-chord');
+    });
+
+    // Build interval structure explanation
+    const iv1semi = ct.intervals[1];  // root→third
+    const iv2semi = ct.intervals[2] - ct.intervals[1]; // third→fifth
+    const iv1name = iv1semi === 4 ? 'Stor ters' : 'Liten ters';
+    const iv2name = iv2semi === 4 ? 'Stor ters' : iv2semi === 3 ? 'Liten ters' : iv2semi === 5 ? 'Kvart' : `${iv2semi} ht`;
+    const totalName = ct.intervals[2] === 7 ? 'Kvint (7 ht)' :
+                      ct.intervals[2] === 6 ? 'Förminskad kvint (6 ht)' :
+                      ct.intervals[2] === 8 ? 'Förstärkt kvint (8 ht)' : `${ct.intervals[2]} ht`;
+
+    const whyText = cbType === 'major'
+      ? 'Durackord: stor ters ger den ljusa karaktären, liten ters kompletterar till kvint.'
+      : cbType === 'minor'
+      ? 'Mollackord: liten ters ger den mörkare karaktären, stor ters kompletterar till kvint.'
+      : cbType === 'dim'
+      ? 'Förminskad: två lika liten-terskombinationer ger en spänd, instabil klang.'
+      : 'Förstärkt: stor ters + stor ters — kvinten är höjd ett halvsteg, ger en öppen, oavgjord klang.';
+
+    // Tone table rows
+    const tableRows = toneNames.map((name, i) => `
+      <tr>
+        <td class="ctt-note ${i === 0 ? 'ctt-root' : ''}">${name}</td>
+        <td class="ctt-semi">${ct.intervals[i]}</td>
+        <td class="ctt-degree">${ct.degrees[i]}</td>
+      </tr>`).join('');
+
+    document.getElementById('cb-info').innerHTML = `
+      <div class="chord-builder-name">${chordName}</div>
+      <div class="chord-builder-name-en">${ct.en} chord in ${rootName}</div>
+      <table class="chord-tone-table">
+        <thead><tr><th>Ton / Note</th><th>Halvtoner / Semitones</th><th>Skalsteg / Degree</th></tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+      <div class="chord-structure">
+        <div class="struct-line">
+          <span class="struct-pill">${iv1name} (${iv1semi} ht)</span>
+          <span class="struct-plus">+</span>
+          <span class="struct-pill">${iv2name} (${iv2semi} ht)</span>
+          <span class="struct-arrow">→</span>
+          <span class="struct-pill">${totalName}</span>
+        </div>
+        <div style="margin-top:0.4rem;font-size:0.78rem;color:#6b7280">${whyText}</div>
+      </div>
+    `;
+
+    // Play arpeggiated then together
+    chordKeys.forEach((k, i) => { if (k !== null) setTimeout(() => playNote(k), i * 200); });
+    setTimeout(() => chordKeys.forEach(k => { if (k !== null) playNote(k); }), 900);
+  }
+
+  function applyChordHighlight(pattern) {
+    if (selectedDeg === null) return;
+    const type = CHORD_QUALITIES[scaleType][selectedDeg];
+    const civals = CHORD_INTERVALS[type];
+
+    // Find lowest root key for this scale
+    let rootKeyIdx = 0;
+    for (let k = 0; k < SPAN; k++) { if (k % 12 === scaleRoot) { rootKeyIdx = k; break; } }
+
+    const chordRootOffset = pattern[selectedDeg];
+    const chordKeys = civals.map(interval => {
+      let k = rootKeyIdx + chordRootOffset + interval;
+      if (k >= SPAN) k -= 12;
+      return (k >= 0 && k < SPAN) ? k : null;
+    });
+
+    chordKeys.forEach(k => { if (k !== null) setKeyClass(scKm, k, 'is-chord'); });
+
+    // Play arpeggiated, then together
+    chordKeys.forEach((k, i) => { if (k !== null) setTimeout(() => playNote(k), i * 200); });
+    setTimeout(() => chordKeys.forEach(k => { if (k !== null) playNote(k); }), 900);
+  }
+</script>
+</body>
+</html>
