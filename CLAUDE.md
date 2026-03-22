@@ -98,3 +98,4 @@ const PRESETS            // färdiga progressioner (6 st)
 1. **Gitarrvy** — visa skalor/ackord på gitarrhals (6 strängar, standardstämning EADGBE)
 2. **Fler skaltyper** — harmonisk moll, dorisk, mixolydisk m.fl.
 3. **Djupare progressionsanalys** — förklara varför ackord rör sig mot varandra (V→I, II→V etc.)
+4. **Inversions i övningar** — toggle i övningsfliken för att inkludera omvändningar (1st/2nd inversion). Just nu spelas alltid root position. Inget påbörjat.

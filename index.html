@@ -538,7 +538,6 @@
     <button class="reset-btn" onclick="resetIv()" data-i18n="iv-reset">Återställ</button>
     <button class="audio-btn" onclick="toggleAudio()" data-i18n="audio-on">♪ Ljud: På</button>
   </div>
-  <p class="notation-note" data-i18n="iv-notation">Obs: I svensk notation skrivs B♮ ofta som <strong>H</strong> och B♭ som <strong>B</strong>. Här används internationell notation.</p>
 
 </section>
 
@@ -717,7 +716,6 @@
       'iv-dir-down': '↓ ned',
       'ref-show': 'Visa alla intervaller ▾',
       'ref-hide': 'Dölj intervaller ▴',
-      'iv-notation': 'Obs: I svensk notation skrivs B♮ ofta som <strong>H</strong> och B♭ som <strong>B</strong>. Här används internationell notation.',
       'sc-root-label': 'Grundton',
       'sc-type-label': 'Skala',
       'sc-btn-major': 'Durskala',
@@ -818,7 +816,6 @@
       'iv-dir-down': '↓ down',
       'ref-show': 'Show all intervals ▾',
       'ref-hide': 'Hide intervals ▴',
-      'iv-notation': 'Note: In Swedish notation B♮ is written as <strong>H</strong> and B♭ as <strong>B</strong>. This app uses international notation.',
       'sc-root-label': 'Root note',
       'sc-type-label': 'Scale type',
       'sc-btn-major': 'Major Scale',
@@ -1377,9 +1374,10 @@
     for (let k = start; k < start + 12; k++) {
       if (k % 12 === root) { rootKey = k; break; }
     }
+    // If highest note exceeds span, shift entire chord down an octave
+    if (rootKey + ivals[ivals.length - 1] >= SPAN) rootKey -= 12;
     return ivals.map(iv => {
-      let k = rootKey + iv;
-      if (k >= SPAN) k -= 12;
+      const k = rootKey + iv;
       return (k >= 0 && k < SPAN) ? k : null;
     });
   }
