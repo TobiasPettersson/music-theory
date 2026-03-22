@@ -530,7 +530,7 @@
     <button class="ref-toggle" id="ref-toggle-btn" onclick="toggleRef()" data-i18n="ref-show">Visa alla intervaller ▾</button>
     <table class="ref-table" id="refTable">
       <thead>
-        <tr><th>Halvtoner</th><th class="th-sv">Svenska</th><th>English</th><th>Skalsteg</th></tr>
+        <tr><th data-i18n="ref-th-semi">Halvtoner</th><th class="th-sv" data-i18n="ref-th-sv">Svenska</th><th data-i18n="ref-th-en">English</th><th data-i18n="ref-th-deg">Skalsteg</th></tr>
       </thead>
       <tbody id="refBody"></tbody>
     </table>
@@ -568,7 +568,7 @@
   <div class="chord-grid" id="chord-grid"></div>
 
   <div class="btn-row">
-    <button class="audio-btn" onclick="toggleAudio()">♪ Ljud: På</button>
+    <button class="audio-btn" onclick="toggleAudio()" data-i18n="audio-on">♪ Ljud: På</button>
   </div>
 
 </section>
@@ -676,7 +676,7 @@
   </div>
 
   <div class="btn-row" style="margin-top:1rem;">
-    <button class="audio-btn" onclick="toggleAudio()">♪ Ljud: På</button>
+    <button class="audio-btn" onclick="toggleAudio()" data-i18n="audio-on">♪ Ljud: På</button>
   </div>
 
 </section>
@@ -717,6 +717,10 @@
       'iv-dir-down': '↓ ned',
       'ref-show': 'Visa alla intervaller ▾',
       'ref-hide': 'Dölj intervaller ▴',
+      'ref-th-semi': 'Halvtoner',
+      'ref-th-sv': 'Svenska',
+      'ref-th-en': 'English',
+      'ref-th-deg': 'Skalsteg',
       'sc-root-label': 'Grundton',
       'sc-type-label': 'Skala',
       'sc-btn-major': 'Durskala',
@@ -816,6 +820,10 @@
       'iv-dir-down': '↓ down',
       'ref-show': 'Show all intervals ▾',
       'ref-hide': 'Hide intervals ▴',
+      'ref-th-semi': 'Semitones',
+      'ref-th-sv': 'Swedish',
+      'ref-th-en': 'Interval name',
+      'ref-th-deg': 'Scale degree',
       'sc-root-label': 'Root note',
       'sc-type-label': 'Scale type',
       'sc-btn-major': 'Major Scale',
