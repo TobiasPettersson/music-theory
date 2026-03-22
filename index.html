@@ -152,6 +152,8 @@
     .ref-table td { color: #d1d5db; }
     .ref-table tr:hover td { background: #1f2937; }
     .ref-table .td-sv  { font-weight: 600; color: #e5e7eb; }
+    .ref-table.lang-en .td-sv,
+    .ref-table.lang-en .th-sv { display: none; }
     .ref-table .td-deg { font-family: monospace; color: #a78bfa; font-weight: 700; }
     .ref-table .td-sem { color: #60a5fa; font-weight: 700; }
 
@@ -528,7 +530,7 @@
     <button class="ref-toggle" id="ref-toggle-btn" onclick="toggleRef()" data-i18n="ref-show">Visa alla intervaller ▾</button>
     <table class="ref-table" id="refTable">
       <thead>
-        <tr><th>Halvtoner</th><th>Svenska</th><th>English</th><th>Skalsteg</th></tr>
+        <tr><th>Halvtoner</th><th class="th-sv">Svenska</th><th>English</th><th>Skalsteg</th></tr>
       </thead>
       <tbody id="refBody"></tbody>
     </table>
@@ -909,6 +911,7 @@
       if (val !== undefined) el.innerHTML = val;
     });
     document.getElementById('lang-toggle').classList.toggle('is-en', lang === 'en');
+    document.getElementById('refTable').classList.toggle('lang-en', lang === 'en');
 
     // Update audio buttons (state-dependent)
     document.querySelectorAll('.audio-btn').forEach(btn => {
