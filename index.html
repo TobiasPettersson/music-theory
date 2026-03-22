@@ -1893,7 +1893,7 @@
   }
 
   buildPiano('piano-cb', cbKm, k => playNote(k));
-  renderChordBuilder();
+  renderChordBuilder(true); // silent on initial load — user triggers playback by interacting
 
   function renderChordBuilder(silent = false) {
     const ct        = CB_CHORD_TYPES.find(t => t.id === cbType);
