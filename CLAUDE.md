@@ -2,93 +2,99 @@
 
 ## Projektbeskrivning
 
-Bygg en interaktiv musikteori-webapp för Tobbe, gitarrist och pianist på avancerad nybörjarnivå. Appen ska hjälpa användaren utforska och förstå musikteori visuellt och interaktivt. Undervisningsspråk: **svenska**.
+Interaktiv musikteori-webapp för Tobbe, gitarrist och pianist på avancerad nybörjarnivå. En enda fil: `index.html`. Fokus på konceptuell förståelse — varför saker fungerar, inte bara vad man ska göra.
 
-Fokus ligger på konceptuell förståelse — varför saker fungerar, inte bara vad man ska göra.
+**Live:** https://tobiaspettersson.github.io/music-theory/
+**Repo:** https://github.com/TobiasPettersson/music-theory (publikt)
 
 ---
 
-## Vad appen ska täcka
+## Nuvarande status — vad som är byggt
 
-### 1. Skalor
-- **Durskala:** H–H–h–H–H–H–h
+### ✅ Klart
+
+| Flik | Innehåll |
+|------|----------|
+| **Intervaller** | Klicka två tangenter → se intervallnamn, halvtoner, skalsteg. Referenstabell (collapsible). |
+| **Skalor** | Dur + naturlig mollskala. Piano-highlighting, tonbubblor med stegmönster (H/h). Diatoniska ackord med klickbara kort. Relativ skala visas. |
+| **Ackord** | Välj grundton + typ (Dur/Moll/Dim/Aug). Pianohighlight, tontabell (ton/halvtoner/skalsteg), intervalstruktur med förklaring. |
+| **Progressioner** | Palett med 7 diatoniska ackord, bygg sekvens, presets (I–IV–V etc.), BPM-slider, loop, uppspelning med pianohighlight. |
+| **Övning** | Quiz 1: gissa ackordtyp. Quiz 2: hitta ackordtoner på piano. Poängräkning. |
+| **SV/EN-knapp** | Knapp uppe till höger växlar hela UI:t mellan svenska och engelska. Alla texter, förklaringar och knappar översatta. |
+| **Mobilanpassning** | Responsiv CSS, scrollbar flik-nav, horisontell scroll på referenstabell, grid-justeringar. |
+
+### ❌ Återstår
+
+- **Gitarrvy** — ackord och skalor på gitarrhals (inget påbörjat)
+
+---
+
+## Arkitektur
+
+- Ren vanilla HTML/CSS/JS, **ingen build-step, inga beroenden**
+- Allt i en fil: `index.html`
+- Web Audio API för ljud (pianolikt timbre med harmonics)
+- Piano: 25 tangenter (C3–C5), `W = 38px` för vita tangenter — svarta tangenternas `left`-position beräknas i JS baserat på detta värde. **Ändra inte CSS-bredden utan att även uppdatera `W` i JS.**
+
+### Språksystem
+```javascript
+let lang = 'sv'; // eller 'en'
+const TRANSLATIONS = { sv: {...}, en: {...} };
+function t(key) { ... }       // hämta översättning
+function toggleLang() { ... } // växla språk
+function applyLang() { ... }  // uppdaterar data-i18n-element + anropar renderfunktioner
+```
+- Statiska HTML-element har `data-i18n="nyckel"` — uppdateras av `applyLang()`
+- Dynamiska texter använder `t('nyckel')` direkt i JS
+- `renderChordBuilder(silent = false)` — skicka `true` för att undvika ljuduppspelning (t.ex. vid språkbyte eller sidladdning)
+
+### Viktiga konstanter
+```javascript
+const SCALE_PATTERNS     // halvtonsoffsets för dur/moll
+const SCALE_NOTE_NAMES   // korrekt notnamnstavning för alla 24 tonarter
+const CHORD_QUALITIES    // diatoniska ackordtyper per skalsteg
+const CB_CHORD_TYPES     // ackordtyper med intervall och skalsteg
+const INTERVALS          // alla 13 intervaller med sv/en-namn
+const PRESETS            // färdiga progressioner (6 st)
+```
+
+---
+
+## Musikteori-referens
+
+### Skalor
+- **Durskala:** H–H–h–H–H–H–h (H = helmtonsteg = 2 ht, h = halvtonsteg = 1 ht)
 - **Naturlig mollskala:** H–h–H–H–h–H–H
-- Visuell representation på pianotangentbord och gitarrhalsar
-- C-dur och A-moll som genomgående exempel (delar samma toner — relativ mollskala)
+- C-dur och A-moll delar samma sju toner (relativa skalor)
 
-### 2. Intervaller
-| Intervall | Halvtoner |
-|---|---|
-| Prim (unison) | 0 |
-| Liten sekund | 1 |
-| Stor sekund | 2 |
-| Liten ters | 3 |
-| Stor ters | 4 |
-| Kvart | 5 |
-| Tritonus | 6 |
-| Kvint | 7 |
-| Liten sext | 8 |
-| Stor sext | 9 |
-| Liten septima | 10 |
-| Stor septima | 11 |
-| Oktav | 12 |
-
-- Stor = major, Liten = minor
-- Rena intervall: kvart och kvint (finns bara i en variant)
-
-### 3. De fyra grundackordtyperna
+### De fyra grundackordtyperna
 | Typ | Skalsteg | Halvtoner |
-|---|---|---|
+|-----|----------|-----------|
 | Major | 1 – 3 – 5 | 0 – 4 – 7 |
 | Minor | 1 – b3 – 5 | 0 – 3 – 7 |
 | Diminished | 1 – b3 – b5 | 0 – 3 – 6 |
 | Augmented | 1 – 3 – #5 | 0 – 4 – 8 |
 
-- Varje ton i ett ackord ska ha ett unikt bokstavsnamn (Eb, inte D#, i ett C-moll-ackord)
-- Tre parallella system används genomgående: **namn**, **halvtoner**, **skalsteg**
+- Varje ton i ett ackord ska ha ett unikt bokstavsnamn (Eb, inte D#, i C-moll)
 
-### 4. Diatoniska ackord
-**Durskala:**
-| I | II | III | IV | V | VI | VII |
-|---|---|---|---|---|---|---|
-| Major | Minor | Minor | Major | Major | Minor | Dim |
-| C | Dm | Em | F | G | Am | Bdim |
-
-**Mollskala:**
-| I | II | III | IV | V | VI | VII |
-|---|---|---|---|---|---|---|
-| Minor | Dim | Major | Minor | Minor | Major | Major |
-
-### 5. Ackordprogressioner (nästa steg att bygga ut)
-- Romerska siffror (I–VII) för att beskriva progressioner
-- Vanliga progressioner: I–IV–V, I–V–VI–IV, II–V–I osv.
-- Visa hur ackord "vill" röra sig mot varandra
-
----
-
-## Funktioner att prioritera
-
-1. **Interaktivt pianotangentbord** — markera toner i skalor och ackord
-2. **Ackordbyggare** — välj grundton och typ, se toner + intervall + skalsteg
-3. **Skalutforskare** — välj tonart och skala, se diatoniska ackord
-4. **Progressionsverktyg** — bygg och spela upp ackordprogressioner med romerska siffror
-5. **Övningsläge** — gissa ackordtyp givet toner, eller toner givet ackordnamn
-
----
-
-## Tekniska önskemål
-
-- **Tvåspråkig:** Svenska och engelska parallellt (t.ex. "Kvint / Perfect Fifth")
-- Visuellt piano som hjälpmedel (Tobbe använder piano för att förstå teori, inte nödvändigtvis för att spela)
-- Gitarrvy som komplement
-- Ljud om möjligt (Web Audio API)
-- Mobilanpassad
+### Diatoniska ackord
+**Dur:** I(M) – ii(m) – iii(m) – IV(M) – V(M) – vi(m) – vii°(dim)
+**Moll:** i(m) – ii°(dim) – III(M) – iv(m) – v(m) – VI(M) – VII(M)
 
 ---
 
 ## Pedagogiska principer
 
-- Visa alltid alla tre systemen parallellt: **namn** / **halvtoner** / **skalsteg**
+- Visa alltid tre system parallellt: **namn** / **halvtoner** / **skalsteg**
 - Förklara *varför*, inte bara *vad*
-- Undvik att föregripa — låt användaren utforska och dra egna slutsatser
+- Undvik att föregripa — låt användaren utforska
+- Piano är verktyget för teoriförståelse (inte nödvändigtvis för att spela)
 - Exempel utgår från C-dur och A-moll som bas
+
+---
+
+## Nästa steg (förslag)
+
+1. **Gitarrvy** — visa skalor/ackord på gitarrhals (6 strängar, standardstämning EADGBE)
+2. **Fler skaltyper** — harmonisk moll, dorisk, mixolydisk m.fl.
+3. **Djupare progressionsanalys** — förklara varför ackord rör sig mot varandra (V→I, II→V etc.)
