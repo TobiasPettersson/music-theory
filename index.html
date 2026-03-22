@@ -165,6 +165,26 @@
     .reset-btn:hover, .audio-btn:hover { background: #4b5563; }
     .audio-btn.muted { color: #6b7280; }
 
+    /* ── Language toggle ── */
+    .lang-toggle {
+      position: fixed;
+      top: 0.85rem;
+      right: 0.85rem;
+      background: #1f2937;
+      border: 1px solid #374151;
+      color: #9ca3af;
+      border-radius: 8px;
+      padding: 0.3rem 0.65rem;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      z-index: 100;
+      transition: background 0.15s, color 0.15s;
+    }
+    .lang-toggle:hover { background: #374151; color: #e5e7eb; }
+    .lang-toggle.is-en { color: #c4b5fd; border-color: #6d28d9; }
+
     .notation-note { font-size: 0.75rem; color: #6b7280; text-align: center; }
 
     /* ── Scale: selectors ── */
@@ -482,16 +502,17 @@
 <body>
 
 <header>
-  <h1>Musikteori</h1>
-  <p>Music Theory — Interaktiv utforskare</p>
+  <h1 data-i18n="app-title">Musikteori</h1>
+  <p data-i18n="app-sub">Music Theory — Interaktiv utforskare</p>
 </header>
+<button class="lang-toggle" id="lang-toggle" onclick="toggleLang()">EN</button>
 
 <nav class="tab-nav">
-  <button class="tab-btn active" id="tab-btn-intervals" onclick="showTab('intervals')">Intervaller</button>
-  <button class="tab-btn"        id="tab-btn-scales"    onclick="showTab('scales')">Skalor</button>
-  <button class="tab-btn"        id="tab-btn-chords"    onclick="showTab('chords')">Ackord</button>
-  <button class="tab-btn"        id="tab-btn-prog"      onclick="showTab('prog')">Progressioner</button>
-  <button class="tab-btn"        id="tab-btn-quiz"      onclick="showTab('quiz')">Övning</button>
+  <button class="tab-btn active" id="tab-btn-intervals" onclick="showTab('intervals')" data-i18n="tab-intervals">Intervaller</button>
+  <button class="tab-btn"        id="tab-btn-scales"    onclick="showTab('scales')"    data-i18n="tab-scales">Skalor</button>
+  <button class="tab-btn"        id="tab-btn-chords"    onclick="showTab('chords')"    data-i18n="tab-chords">Ackord</button>
+  <button class="tab-btn"        id="tab-btn-prog"      onclick="showTab('prog')"      data-i18n="tab-prog">Progressioner</button>
+  <button class="tab-btn"        id="tab-btn-quiz"      onclick="showTab('quiz')"      data-i18n="tab-quiz">Övning</button>
 </nav>
 
 <!-- ══ INTERVALLER ══════════════════════════════════════════ -->
@@ -500,14 +521,11 @@
   <div class="piano-wrapper"><div class="piano" id="piano-iv"></div></div>
 
   <div class="info-panel" id="info-iv">
-    <p class="hint">
-      <strong>1.</strong> Klicka på en ton → grundton&nbsp;&nbsp;
-      <strong>2.</strong> Klicka på en annan ton → se intervallet
-    </p>
+    <p class="hint" data-i18n="iv-hint"><strong>1.</strong> Klicka på en ton → grundton&nbsp;&nbsp;<strong>2.</strong> Klicka på en annan ton → se intervallet</p>
   </div>
 
   <section class="ref-section">
-    <button class="ref-toggle" onclick="toggleRef()">Visa alla intervaller / Show all intervals ▾</button>
+    <button class="ref-toggle" id="ref-toggle-btn" onclick="toggleRef()" data-i18n="ref-show">Visa alla intervaller ▾</button>
     <table class="ref-table" id="refTable">
       <thead>
         <tr><th>Halvtoner</th><th>Svenska</th><th>English</th><th>Skalsteg</th></tr>
@@ -517,12 +535,10 @@
   </section>
 
   <div class="btn-row">
-    <button class="reset-btn" onclick="resetIv()">Återställ / Reset</button>
-    <button class="audio-btn" onclick="toggleAudio()">♪ Ljud: På</button>
+    <button class="reset-btn" onclick="resetIv()" data-i18n="iv-reset">Återställ</button>
+    <button class="audio-btn" onclick="toggleAudio()" data-i18n="audio-on">♪ Ljud: På</button>
   </div>
-  <p class="notation-note">
-    Obs: I svensk notation skrivs B♮ ofta som <strong>H</strong> och B♭ som <strong>B</strong>. Här används internationell notation.
-  </p>
+  <p class="notation-note" data-i18n="iv-notation">Obs: I svensk notation skrivs B♮ ofta som <strong>H</strong> och B♭ som <strong>B</strong>. Här används internationell notation.</p>
 
 </section>
 
@@ -530,15 +546,15 @@
 <section class="tab-section" id="tab-scales">
 
   <div class="selector-group">
-    <div class="selector-label">Grundton / Root note</div>
+    <div class="selector-label" data-i18n="sc-root-label">Grundton</div>
     <div class="selector-btns" id="root-btns"></div>
   </div>
 
   <div class="selector-group">
-    <div class="selector-label">Skala / Scale type</div>
+    <div class="selector-label" data-i18n="sc-type-label">Skala</div>
     <div class="selector-btns">
-      <button class="sel-btn active-type" id="scale-btn-major" onclick="selectScaleType('major')">Durskala (Major)</button>
-      <button class="sel-btn"             id="scale-btn-minor" onclick="selectScaleType('minor')">Naturlig mollskala (Natural Minor)</button>
+      <button class="sel-btn active-type" id="scale-btn-major" onclick="selectScaleType('major')" data-i18n="sc-btn-major">Durskala</button>
+      <button class="sel-btn"             id="scale-btn-minor" onclick="selectScaleType('minor')" data-i18n="sc-btn-minor">Naturlig mollskala</button>
     </div>
   </div>
 
@@ -546,8 +562,8 @@
 
   <div class="scale-info" id="scale-info"></div>
 
-  <div class="section-label">Diatoniska ackord / Diatonic Chords</div>
-  <p class="chord-hint">Klicka på ett ackord för att se och höra det</p>
+  <div class="section-label" data-i18n="sc-dia-label">Diatoniska ackord</div>
+  <p class="chord-hint" data-i18n="sc-chord-hint">Klicka på ett ackord för att se och höra det</p>
   <div class="chord-grid" id="chord-grid"></div>
 
   <div class="btn-row">
@@ -560,13 +576,13 @@
 <section class="tab-section" id="tab-prog">
 
   <div class="selector-group">
-    <div class="selector-label">Tonart / Key</div>
+    <div class="selector-label" data-i18n="prog-key-label">Tonart</div>
     <div class="selector-btns" id="prog-root-btns"></div>
   </div>
   <div class="selector-group">
     <div class="selector-btns">
-      <button class="sel-btn active-type" id="prog-scale-btn-major" onclick="selectProgScale('major')">Dur (Major)</button>
-      <button class="sel-btn"             id="prog-scale-btn-minor" onclick="selectProgScale('minor')">Moll (Minor)</button>
+      <button class="sel-btn active-type" id="prog-scale-btn-major" onclick="selectProgScale('major')" data-i18n="prog-scale-major">Dur</button>
+      <button class="sel-btn"             id="prog-scale-btn-minor" onclick="selectProgScale('minor')" data-i18n="prog-scale-minor">Moll</button>
     </div>
   </div>
 
@@ -576,14 +592,14 @@
     <span class="prog-empty">Klicka på ackord ovan för att bygga din progression</span>
   </div>
 
-  <div class="section-label" style="margin-bottom:0.5rem">Färdiga progressioner / Presets</div>
+  <div class="section-label" style="margin-bottom:0.5rem" data-i18n="prog-presets-label">Färdiga progressioner</div>
   <div class="prog-presets-row" id="prog-presets"></div>
 
   <div class="prog-controls">
-    <button class="reset-btn play-btn" id="play-btn" onclick="togglePlayProg()">▶ Spela</button>
-    <button class="reset-btn" onclick="clearProg()">Rensa</button>
-    <button class="reset-btn audio-btn loop-btn" id="loop-btn" onclick="toggleLoop()">⟳ Loop: Av</button>
-    <button class="audio-btn" onclick="toggleAudio()">♪ Ljud: På</button>
+    <button class="reset-btn play-btn" id="play-btn" onclick="togglePlayProg()" data-i18n="btn-play">▶ Spela</button>
+    <button class="reset-btn" onclick="clearProg()" data-i18n="btn-clear">Rensa</button>
+    <button class="reset-btn audio-btn loop-btn" id="loop-btn" onclick="toggleLoop()" data-i18n="btn-loop-off">⟳ Loop: Av</button>
+    <button class="audio-btn" onclick="toggleAudio()" data-i18n="audio-on">♪ Ljud: På</button>
     <div class="tempo-wrap">
       <label for="prog-tempo">Tempo:</label>
       <input type="range" id="prog-tempo" min="40" max="180" value="75" oninput="updateTempo()">
@@ -600,20 +616,20 @@
 <section class="tab-section" id="tab-quiz">
 
   <div class="quiz-sub-nav">
-    <button class="quiz-sub-btn active" id="qsub-btn-type"  onclick="showQuizEx('type')">Gissa ackordtyp</button>
-    <button class="quiz-sub-btn"        id="qsub-btn-tones" onclick="showQuizEx('tones')">Hitta ackordtoner</button>
+    <button class="quiz-sub-btn active" id="qsub-btn-type"  onclick="showQuizEx('type')"  data-i18n="qsub-type">Gissa ackordtyp</button>
+    <button class="quiz-sub-btn"        id="qsub-btn-tones" onclick="showQuizEx('tones')" data-i18n="qsub-tones">Hitta ackordtoner</button>
   </div>
 
   <div class="quiz-score" id="quiz-score-display">Poäng: <strong>–</strong></div>
 
   <!-- Exercise 1: Chord type -->
   <div class="quiz-panel" id="qpanel-type">
-    <p class="quiz-instruction">Lyssna och titta på ackordet. Vilken typ är det?</p>
-    <button class="replay-btn" onclick="replayQ1()">♪ Spela igen</button>
+    <p class="quiz-instruction" data-i18n="q1-instruction">Lyssna och titta på ackordet. Vilken typ är det?</p>
+    <button class="replay-btn" onclick="replayQ1()" data-i18n="q1-replay">♪ Spela igen</button>
     <div class="piano-wrapper"><div class="piano" id="piano-q1"></div></div>
     <div class="quiz-answer-grid" id="q1-btns"></div>
     <div class="quiz-result hidden" id="q1-result"></div>
-    <button class="next-btn hidden" id="q1-next" onclick="newQ1()">Nästa fråga →</button>
+    <button class="next-btn hidden" id="q1-next" onclick="newQ1()" data-i18n="q-next">Nästa fråga →</button>
   </div>
 
   <!-- Exercise 2: Chord tones -->
@@ -622,19 +638,19 @@
       <div class="q2-chord-name" id="q2-name">–</div>
       <div class="q2-chord-type" id="q2-type-label">–</div>
     </div>
-    <p class="quiz-instruction">Klicka på de tre tonerna som bildar detta ackord på pianot</p>
+    <p class="quiz-instruction" data-i18n="q2-instruction">Klicka på de tre tonerna som bildar detta ackord på pianot</p>
     <div class="q2-progress" id="q2-progress">0 / 3 toner funna</div>
     <div class="piano-wrapper"><div class="piano" id="piano-q2"></div></div>
     <div class="btn-row" style="margin-top:0.75rem">
-      <button class="reset-btn" id="q2-reveal" onclick="revealQ2()">Visa svar</button>
-      <button class="next-btn hidden" id="q2-next" onclick="newQ2()">Nästa fråga →</button>
+      <button class="reset-btn" id="q2-reveal" onclick="revealQ2()" data-i18n="q2-reveal-btn">Visa svar</button>
+      <button class="next-btn hidden" id="q2-next" onclick="newQ2()" data-i18n="q-next">Nästa fråga →</button>
     </div>
     <div class="quiz-result hidden" id="q2-result"></div>
   </div>
 
   <div class="btn-row" style="margin-top:1.5rem">
-    <button class="audio-btn" onclick="toggleAudio()">♪ Ljud: På</button>
-    <button class="reset-btn" onclick="resetQuizScore()">Återställ poäng</button>
+    <button class="audio-btn" onclick="toggleAudio()" data-i18n="audio-on">♪ Ljud: På</button>
+    <button class="reset-btn" onclick="resetQuizScore()" data-i18n="reset-score">Återställ poäng</button>
   </div>
 
 </section>
@@ -643,12 +659,12 @@
 <section class="tab-section" id="tab-chords">
 
   <div class="selector-group">
-    <div class="selector-label">Grundton / Root note</div>
+    <div class="selector-label" data-i18n="cb-root-label">Grundton</div>
     <div class="selector-btns" id="cb-root-btns"></div>
   </div>
 
   <div class="selector-group">
-    <div class="selector-label">Ackordtyp / Chord type</div>
+    <div class="selector-label" data-i18n="cb-type-label">Ackordtyp</div>
     <div class="selector-btns" id="cb-type-btns"></div>
   </div>
 
@@ -673,6 +689,281 @@
   const W         = 38;
   const START_OCT = 3;
   const SPAN      = 25; // C3–C5
+
+  // ═══════════════════════════════════════════════════════════
+  // LANGUAGE
+  // ═══════════════════════════════════════════════════════════
+  let lang = 'sv';
+
+  const TRANSLATIONS = {
+    sv: {
+      'app-title': 'Musikteori',
+      'app-sub': 'Music Theory — Interaktiv utforskare',
+      'lang-btn': 'EN',
+      'tab-intervals': 'Intervaller',
+      'tab-scales': 'Skalor',
+      'tab-chords': 'Ackord',
+      'tab-prog': 'Progressioner',
+      'tab-quiz': 'Övning',
+      'audio-on': '♪ Ljud: På',
+      'audio-off': '♪ Ljud: Av',
+      'iv-hint': '<strong>1.</strong> Klicka på en ton → grundton&nbsp;&nbsp;<strong>2.</strong> Klicka på en annan ton → se intervallet',
+      'iv-reset': 'Återställ',
+      'iv-root-chosen': 'Grundton vald — klicka på en annan ton',
+      'iv-stat-semi': 'Halvtoner',
+      'iv-stat-degree': 'Skalsteg',
+      'iv-stat-notes': 'Toner',
+      'iv-dir-up': '↑ upp',
+      'iv-dir-down': '↓ ned',
+      'ref-show': 'Visa alla intervaller ▾',
+      'ref-hide': 'Dölj intervaller ▴',
+      'iv-notation': 'Obs: I svensk notation skrivs B♮ ofta som <strong>H</strong> och B♭ som <strong>B</strong>. Här används internationell notation.',
+      'sc-root-label': 'Grundton',
+      'sc-type-label': 'Skala',
+      'sc-btn-major': 'Durskala',
+      'sc-btn-minor': 'Naturlig mollskala',
+      'sc-dia-label': 'Diatoniska ackord',
+      'sc-chord-hint': 'Klicka på ett ackord för att se och höra det',
+      'scale-name-major': 'durskala',
+      'scale-name-minor': 'naturlig mollskala',
+      'scale-explain-major': 'Mönstret är <strong>H–H–h–H–H–H–h</strong> (H = heltonsteg = 2 halvtoner, h = halvtonsteg = 1 halvton). Den ljusa, "glada" karaktären kommer framför allt från <strong>stor ters</strong> (4 halvtoner upp till steg 3).',
+      'scale-explain-minor': 'Mönstret är <strong>H–h–H–H–h–H–H</strong>. Halvtonsstegen faller nu på 2→3 och 5→6. Det är framför allt <strong>liten ters</strong> (3 halvtoner upp till steg 3) som ger den mörkare, "sorgsnare" karaktären.',
+      'scale-rel-major': 'mollskalan',
+      'scale-rel-minor': 'durskalan',
+      'scale-rel-shares': 'är den relativa {relType} — den delar exakt samma sju toner.',
+      'badge-major': 'Dur',
+      'badge-minor': 'Moll',
+      'badge-dim': 'Förminskad',
+      'why-major': '<strong>Stor ters</strong> (4 ht) + <strong>liten ters</strong> (3 ht) → durklang',
+      'why-minor': '<strong>Liten ters</strong> (3 ht) + <strong>stor ters</strong> (4 ht) → mollklang',
+      'why-dim':   '<strong>Liten ters</strong> (3 ht) + <strong>liten ters</strong> (3 ht) → förminskad',
+      'cb-root-label': 'Grundton',
+      'cb-type-label': 'Ackordtyp',
+      'cb-hint': 'Välj grundton och typ ovan',
+      'ctt-note': 'Ton',
+      'ctt-semi': 'Halvtoner',
+      'ctt-degree': 'Skalsteg',
+      'int-major-third': 'Stor ters',
+      'int-minor-third': 'Liten ters',
+      'int-perf-fourth': 'Kvart',
+      'int-perf-fifth': 'Kvint (7 ht)',
+      'int-dim-fifth': 'Förminskad kvint (6 ht)',
+      'int-aug-fifth': 'Förstärkt kvint (8 ht)',
+      'cb-why-major': 'Durackord: stor ters ger den ljusa karaktären, liten ters kompletterar till kvint.',
+      'cb-why-minor': 'Mollackord: liten ters ger den mörkare karaktären, stor ters kompletterar till kvint.',
+      'cb-why-dim':   'Förminskad: två lika liten-terskombinationer ger en spänd, instabil klang.',
+      'cb-why-aug':   'Förstärkt: stor ters + stor ters — kvinten är höjd ett halvsteg, ger en öppen, oavgjord klang.',
+      'cb-type-major': 'Dur',
+      'cb-type-minor': 'Moll',
+      'cb-type-dim': 'Förminskad',
+      'cb-type-aug': 'Förstärkt',
+      'prog-key-label': 'Tonart',
+      'prog-scale-major': 'Dur',
+      'prog-scale-minor': 'Moll',
+      'prog-empty': 'Klicka på ackord ovan för att bygga din progression',
+      'prog-presets-label': 'Färdiga progressioner',
+      'btn-play': '▶ Spela',
+      'btn-stop': '■ Stopp',
+      'btn-clear': 'Rensa',
+      'btn-loop-on': '⟳ Loop: På',
+      'btn-loop-off': '⟳ Loop: Av',
+      'prog-type-major': 'Dur',
+      'prog-type-minor': 'Moll',
+      'prog-type-dim': 'Dim',
+      'preset-desc-0': 'Blues & rock-klassiker',
+      'preset-desc-1': 'Popens vanligaste progression',
+      'preset-desc-2': '50-tals & doowop',
+      'preset-desc-3': 'Jazzens grundrörelse',
+      'preset-desc-4': 'Klassisk blues-loop',
+      'preset-desc-5': 'Mörk pop (börjar på VI)',
+      'qsub-type': 'Gissa ackordtyp',
+      'qsub-tones': 'Hitta ackordtoner',
+      'quiz-score-lbl': 'Poäng',
+      'q1-instruction': 'Lyssna och titta på ackordet. Vilken typ är det?',
+      'q1-replay': '♪ Spela igen',
+      'q-next': 'Nästa fråga →',
+      'q2-instruction': 'Klicka på de tre tonerna som bildar detta ackord på pianot',
+      'q2-progress-of': 'toner funna',
+      'q2-reveal-btn': 'Visa svar',
+      'q2-result-ok': '✓ Rätt! Alla tre toner hittade utan felklick.',
+      'q2-result-found': 'Bra jobbat! Du hittade alla toner',
+      'q2-result-wrongs': 'felklick',
+      'q2-answer-prefix': 'Svaret är:',
+      'q1-correct': '✓ Rätt!',
+      'q1-wrong': '✗ Fel.',
+      'reset-score': 'Återställ poäng',
+      'quiz-type-major': 'Dur',
+      'quiz-type-minor': 'Moll',
+      'quiz-type-dim': 'Förminskad',
+      'quiz-type-aug': 'Förstärkt',
+    },
+    en: {
+      'app-title': 'Music Theory',
+      'app-sub': 'Musikteori — Interactive Explorer',
+      'lang-btn': 'SV',
+      'tab-intervals': 'Intervals',
+      'tab-scales': 'Scales',
+      'tab-chords': 'Chords',
+      'tab-prog': 'Progressions',
+      'tab-quiz': 'Practice',
+      'audio-on': '♪ Sound: On',
+      'audio-off': '♪ Sound: Off',
+      'iv-hint': '<strong>1.</strong> Click a note → root&nbsp;&nbsp;<strong>2.</strong> Click another note → see the interval',
+      'iv-reset': 'Reset',
+      'iv-root-chosen': 'Root selected — click another note',
+      'iv-stat-semi': 'Semitones',
+      'iv-stat-degree': 'Scale Degree',
+      'iv-stat-notes': 'Notes',
+      'iv-dir-up': '↑ up',
+      'iv-dir-down': '↓ down',
+      'ref-show': 'Show all intervals ▾',
+      'ref-hide': 'Hide intervals ▴',
+      'iv-notation': 'Note: In Swedish notation B♮ is written as <strong>H</strong> and B♭ as <strong>B</strong>. This app uses international notation.',
+      'sc-root-label': 'Root note',
+      'sc-type-label': 'Scale type',
+      'sc-btn-major': 'Major Scale',
+      'sc-btn-minor': 'Natural Minor Scale',
+      'sc-dia-label': 'Diatonic Chords',
+      'sc-chord-hint': 'Click a chord to see and hear it',
+      'scale-name-major': 'Major Scale',
+      'scale-name-minor': 'Natural Minor Scale',
+      'scale-explain-major': 'The pattern is <strong>W–W–H–W–W–W–H</strong> (W = whole step = 2 semitones, H = half step = 1 semitone). The bright, "happy" character comes mainly from the <strong>major third</strong> (4 semitones up to step 3).',
+      'scale-explain-minor': 'The pattern is <strong>W–H–W–W–H–W–W</strong>. The half steps now fall on 2→3 and 5→6. It\'s mainly the <strong>minor third</strong> (3 semitones up to step 3) that gives the darker, "sadder" character.',
+      'scale-rel-major': 'minor scale',
+      'scale-rel-minor': 'major scale',
+      'scale-rel-shares': 'is the relative {relType} — it shares the exact same seven notes.',
+      'badge-major': 'Major',
+      'badge-minor': 'Minor',
+      'badge-dim': 'Diminished',
+      'why-major': '<strong>Major third</strong> (4 st) + <strong>minor third</strong> (3 st) → major chord',
+      'why-minor': '<strong>Minor third</strong> (3 st) + <strong>major third</strong> (4 st) → minor chord',
+      'why-dim':   '<strong>Minor third</strong> (3 st) + <strong>minor third</strong> (3 st) → diminished chord',
+      'cb-root-label': 'Root note',
+      'cb-type-label': 'Chord type',
+      'cb-hint': 'Choose root note and type above',
+      'ctt-note': 'Note',
+      'ctt-semi': 'Semitones',
+      'ctt-degree': 'Degree',
+      'int-major-third': 'Major third',
+      'int-minor-third': 'Minor third',
+      'int-perf-fourth': 'Perfect fourth',
+      'int-perf-fifth': 'Perfect fifth (7 st)',
+      'int-dim-fifth': 'Diminished fifth (6 st)',
+      'int-aug-fifth': 'Augmented fifth (8 st)',
+      'cb-why-major': 'Major chord: the major third gives the bright character, minor third completes to a fifth.',
+      'cb-why-minor': 'Minor chord: the minor third gives the darker character, major third completes to a fifth.',
+      'cb-why-dim':   'Diminished: two stacked minor thirds create a tense, unstable sound.',
+      'cb-why-aug':   'Augmented: major third + major third — the fifth is raised a half step, giving an open, unresolved sound.',
+      'cb-type-major': 'Major',
+      'cb-type-minor': 'Minor',
+      'cb-type-dim': 'Diminished',
+      'cb-type-aug': 'Augmented',
+      'prog-key-label': 'Key',
+      'prog-scale-major': 'Major',
+      'prog-scale-minor': 'Minor',
+      'prog-empty': 'Click chords above to build your progression',
+      'prog-presets-label': 'Presets',
+      'btn-play': '▶ Play',
+      'btn-stop': '■ Stop',
+      'btn-clear': 'Clear',
+      'btn-loop-on': '⟳ Loop: On',
+      'btn-loop-off': '⟳ Loop: Off',
+      'prog-type-major': 'Major',
+      'prog-type-minor': 'Minor',
+      'prog-type-dim': 'Dim',
+      'preset-desc-0': 'Blues & rock classic',
+      'preset-desc-1': 'Most common pop progression',
+      'preset-desc-2': '50s & doo-wop',
+      'preset-desc-3': "Jazz's basic movement",
+      'preset-desc-4': 'Classic blues loop',
+      'preset-desc-5': 'Dark pop (starts on VI)',
+      'qsub-type': 'Guess chord type',
+      'qsub-tones': 'Find chord tones',
+      'quiz-score-lbl': 'Score',
+      'q1-instruction': 'Listen and look at the chord. What type is it?',
+      'q1-replay': '♪ Play again',
+      'q-next': 'Next question →',
+      'q2-instruction': 'Click the three notes that form this chord on the piano',
+      'q2-progress-of': 'notes found',
+      'q2-reveal-btn': 'Show answer',
+      'q2-result-ok': '✓ Correct! All three notes found without mistakes.',
+      'q2-result-found': 'Well done! You found all notes',
+      'q2-result-wrongs': 'wrong clicks',
+      'q2-answer-prefix': 'The answer is:',
+      'q1-correct': '✓ Correct!',
+      'q1-wrong': '✗ Wrong.',
+      'reset-score': 'Reset score',
+      'quiz-type-major': 'Major',
+      'quiz-type-minor': 'Minor',
+      'quiz-type-dim': 'Diminished',
+      'quiz-type-aug': 'Augmented',
+    },
+  };
+
+  function t(key) { return TRANSLATIONS[lang][key] ?? TRANSLATIONS['sv'][key] ?? key; }
+
+  function toggleLang() {
+    lang = lang === 'sv' ? 'en' : 'sv';
+    applyLang();
+  }
+
+  function applyLang() {
+    // Update static data-i18n elements
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const val = TRANSLATIONS[lang][el.dataset.i18n];
+      if (val !== undefined) el.innerHTML = val;
+    });
+    document.getElementById('lang-toggle').classList.toggle('is-en', lang === 'en');
+
+    // Update audio buttons (state-dependent)
+    document.querySelectorAll('.audio-btn').forEach(btn => {
+      if (btn.dataset.i18n) {
+        btn.innerHTML = audioEnabled ? t('audio-on') : t('audio-off');
+        btn.dataset.i18n = audioEnabled ? 'audio-on' : 'audio-off';
+        btn.classList.toggle('muted', !audioEnabled);
+      }
+    });
+
+    // Update play/loop buttons (state-dependent)
+    const playBtn = document.getElementById('play-btn');
+    if (playBtn) { playBtn.innerHTML = progPlaying ? t('btn-stop') : t('btn-play'); }
+    const loopBtn = document.getElementById('loop-btn');
+    if (loopBtn) { loopBtn.innerHTML = progLoop ? t('btn-loop-on') : t('btn-loop-off'); }
+
+    // Update chord type buttons in chord builder
+    CB_CHORD_TYPES.forEach(ct => {
+      const btn = document.getElementById(`cb-type-btn-${ct.id}`);
+      if (btn) btn.textContent = t('cb-type-' + ct.id);
+    });
+
+    // Update quiz answer buttons
+    QUIZ_TYPES.forEach(qt => {
+      const btn = document.getElementById(`q1-ans-${qt.id}`);
+      if (btn) btn.textContent = t('quiz-type-' + qt.id);
+    });
+
+    // Rebuild presets (descriptions change)
+    const presetsEl = document.getElementById('prog-presets');
+    if (presetsEl) {
+      presetsEl.innerHTML = '';
+      PRESETS.forEach((p, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'preset-btn';
+        btn.title = t('preset-desc-' + i);
+        btn.innerHTML = `<strong>${p.name}</strong> <span style="color:#6b7280">— ${t('preset-desc-' + i)}</span>`;
+        btn.onclick = () => { progression = [...p.degrees]; stopProg(); renderProgSeq(); };
+        presetsEl.appendChild(btn);
+      });
+    }
+
+    // Re-render dynamic sections
+    renderScale();
+    renderChordBuilder(true);
+    renderProgPalette();
+    renderProgSeq();
+    updateQuizScore();
+    if (q2State.root !== null) updateQ2Progress();
+  }
 
   // ═══════════════════════════════════════════════════════════
   // AUDIO
@@ -720,7 +1011,8 @@
   function toggleAudio() {
     audioEnabled = !audioEnabled;
     document.querySelectorAll('.audio-btn').forEach(btn => {
-      btn.textContent = audioEnabled ? '♪ Ljud: På' : '♪ Ljud: Av';
+      btn.innerHTML = audioEnabled ? t('audio-on') : t('audio-off');
+      if (btn.dataset.i18n) btn.dataset.i18n = audioEnabled ? 'audio-on' : 'audio-off';
       btn.classList.toggle('muted', !audioEnabled);
     });
   }
@@ -804,7 +1096,7 @@
   function onIvKey(i) {
     if (ivRoot === null) {
       ivRoot = i; setKeyClass(ivKm, i, 'is-root');
-      infoIv.innerHTML = `<div><div class="root-note">${NOTES[ivKm[i].noteIndex]}${ivKm[i].octave}</div><div class="hint">Grundton vald — klicka på en annan ton</div></div>`;
+      infoIv.innerHTML = `<div><div class="root-note">${NOTES[ivKm[i].noteIndex]}${ivKm[i].octave}</div><div class="hint">${t('iv-root-chosen')}</div></div>`;
       playNote(i);
     } else if (i === ivRoot) {
       resetIv();
@@ -819,9 +1111,9 @@
         <div class="result-name-sv">${iv.sv}</div>
         <div class="result-name-en">${iv.en}</div>
         <div class="stats">
-          <div class="stat"><div class="stat-label">Halvtoner / Semitones</div><div class="stat-value">${absSemi}</div><div class="stat-sub">${rawSemi >= 0 ? '↑ upp' : '↓ ned'}</div></div>
-          <div class="stat"><div class="stat-label">Skalsteg / Scale Degree</div><div class="stat-value">${iv.degree}</div></div>
-          <div class="stat"><div class="stat-label">Toner / Notes</div><div class="stat-value" style="font-size:1.1rem">${NOTES[rk.noteIndex]} → ${NOTES[tk.noteIndex]}</div><div class="stat-sub">okt ${rk.octave} → ${tk.octave}</div></div>
+          <div class="stat"><div class="stat-label">${t('iv-stat-semi')}</div><div class="stat-value">${absSemi}</div><div class="stat-sub">${rawSemi >= 0 ? t('iv-dir-up') : t('iv-dir-down')}</div></div>
+          <div class="stat"><div class="stat-label">${t('iv-stat-degree')}</div><div class="stat-value">${iv.degree}</div></div>
+          <div class="stat"><div class="stat-label">${t('iv-stat-notes')}</div><div class="stat-value" style="font-size:1.1rem">${NOTES[rk.noteIndex]} → ${NOTES[tk.noteIndex]}</div><div class="stat-sub">okt ${rk.octave} → ${tk.octave}</div></div>
         </div></div>`;
       playNote(ivRoot); setTimeout(() => playNote(i), 550);
     }
@@ -831,7 +1123,7 @@
     if (ivRoot   !== null) setKeyClass(ivKm, ivRoot,   null);
     if (ivTarget !== null) setKeyClass(ivKm, ivTarget, null);
     ivRoot = null; ivTarget = null;
-    infoIv.innerHTML = `<p class="hint"><strong>1.</strong> Klicka på en ton → grundton&nbsp;&nbsp;<strong>2.</strong> Klicka på en annan ton → se intervallet</p>`;
+    infoIv.innerHTML = `<p class="hint">${t('iv-hint')}</p>`;
   }
 
   const refBody = document.getElementById('refBody');
@@ -842,10 +1134,12 @@
   });
 
   function toggleRef() {
-    const t = document.getElementById('refTable');
-    const btn = document.querySelector('.ref-toggle');
-    t.classList.toggle('open');
-    btn.textContent = t.classList.contains('open') ? 'Dölj intervaller / Hide intervals ▴' : 'Visa alla intervaller / Show all intervals ▾';
+    const tbl = document.getElementById('refTable');
+    const btn = document.getElementById('ref-toggle-btn');
+    tbl.classList.toggle('open');
+    const key = tbl.classList.contains('open') ? 'ref-hide' : 'ref-show';
+    btn.innerHTML = t(key);
+    btn.dataset.i18n = key;
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -902,11 +1196,7 @@
   // Root note display names using standard chord spellings (sharps/flats)
   const CB_ROOT_NAMES    = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
 
-  function chordWhy(type) {
-    if (type === 'major') return '<strong>Stor ters</strong> (4 ht) + <strong>liten ters</strong> (3 ht) → durklang';
-    if (type === 'minor') return '<strong>Liten ters</strong> (3 ht) + <strong>stor ters</strong> (4 ht) → mollklang';
-    return '<strong>Liten ters</strong> (3 ht) + <strong>liten ters</strong> (3 ht) → förminskad';
-  }
+  function chordWhy(type) { return t('why-' + type) ?? t('why-dim'); }
 
   let scaleRoot = 9; // A
   let scaleType = 'major';
@@ -973,21 +1263,19 @@
     }
 
     // ── Scale info box ────────────────────────────────────────
-    const rootName = noteNames[0];
-    const typeSv   = scaleType === 'major' ? 'durskala'           : 'naturlig mollskala';
-    const typeEn   = scaleType === 'major' ? 'Major Scale'        : 'Natural Minor Scale';
-    const explainText = scaleType === 'major'
-      ? 'Mönstret är <strong>H–H–h–H–H–H–h</strong> (H = heltonsteg = 2 halvtoner, h = halvtonsteg = 1 halvton). Den ljusa, "glada" karaktären kommer framför allt från <strong>stor ters</strong> (4 halvtoner upp till steg 3).'
-      : 'Mönstret är <strong>H–h–H–H–h–H–H</strong>. Halvtonsstegen faller nu på 2→3 och 5→6. Det är framför allt <strong>liten ters</strong> (3 halvtoner upp till steg 3) som ger den mörkare, "sorgsnare" karaktären.';
+    const rootName    = noteNames[0];
+    const scaleNameSv = scaleType === 'major' ? 'durskala'           : 'naturlig mollskala';
+    const scaleNameEn = scaleType === 'major' ? 'Major Scale'        : 'Natural Minor Scale';
+    const explainText = t('scale-explain-' + scaleType);
 
     // Relative key
     const relRoot = scaleType === 'major'
       ? (scaleRoot + 9) % 12
       : (scaleRoot + 3) % 12;
-    const relName  = scaleType === 'major'
+    const relName    = scaleType === 'major'
       ? SCALE_NOTE_NAMES.minor[relRoot][0]
       : SCALE_NOTE_NAMES.major[relRoot][0];
-    const relTypeSv = scaleType === 'major' ? 'mollskala' : 'durskala';
+    const relTypeName = t('scale-rel-' + scaleType);
 
     // Tone bubbles with step labels
     let tonesHtml = '';
@@ -998,11 +1286,18 @@
     });
     tonesHtml += `<span class="tone-bubble is-root-bubble">${rootName}</span>`;
 
+    const scaleTitle = lang === 'sv'
+      ? `${rootName}-${scaleNameSv} <span>${rootName} ${scaleNameEn}</span>`
+      : `${rootName} ${scaleNameEn}`;
+    const relLine = lang === 'sv'
+      ? `<strong>${relName}-${relTypeName.replace(' ', '-')}</strong> ${t('scale-rel-shares').replace('{relType}', relTypeName)}`
+      : `<strong>${relName} ${relTypeName}</strong> ${t('scale-rel-shares').replace('{relType}', relTypeName)}`;
+
     document.getElementById('scale-info').innerHTML = `
-      <div class="scale-title">${rootName}-${typeSv} <span>${rootName} ${typeEn}</span></div>
+      <div class="scale-title">${scaleTitle}</div>
       <div class="scale-tones">${tonesHtml}</div>
       <div class="scale-explain">${explainText}</div>
-      <div class="scale-relative"><strong>${relName}-${relTypeSv}</strong> är den relativa ${relTypeSv}n — den delar exakt samma sju toner.</div>
+      <div class="scale-relative">${relLine}</div>
     `;
 
     // ── Diatonic chords ───────────────────────────────────────
@@ -1024,7 +1319,7 @@
       const suffix = type === 'minor' ? 'm' : type === 'dim' ? 'dim' : '';
       const numeral = type === 'minor' ? ROMAN[deg].toLowerCase() : ROMAN[deg];
       const badgeClass = `badge-${type}`;
-      const badgeLabel = type === 'major' ? 'Dur / Major' : type === 'minor' ? 'Moll / Minor' : 'Förminskad / Dim';
+      const badgeLabel = t('badge-' + type);
 
       const card = document.createElement('div');
       card.className = 'chord-card' + (selectedDeg === deg ? ' selected' : '');
@@ -1098,7 +1393,7 @@
 
   function updateQuizScore() {
     document.getElementById('quiz-score-display').innerHTML =
-      `Poäng: <strong>${qScore.correct} / ${qScore.total}</strong>`;
+      `${t('quiz-score-lbl')}: <strong>${qScore.correct} / ${qScore.total}</strong>`;
   }
 
   function resetQuizScore() {
@@ -1126,7 +1421,7 @@
     const btn = document.createElement('button');
     btn.className   = 'q-ans-btn';
     btn.id          = `q1-ans-${qt.id}`;
-    btn.textContent = `${qt.sv} (${qt.en})`;
+    btn.textContent = t('quiz-type-' + qt.id);
     btn.onclick     = () => answerQ1(qt.id);
     q1BtnsEl.appendChild(btn);
   });
@@ -1185,9 +1480,10 @@
     // Result panel
     const resultEl = document.getElementById('q1-result');
     resultEl.className = `quiz-result ${correct ? 'is-correct' : 'is-wrong'}`;
+    const typeName = t('quiz-type-' + q1State.type);
     resultEl.innerHTML = correct
-      ? `<strong>✓ Rätt!</strong> Det var <strong>${chordName}</strong> — ${typeSv}<div class="why">${chordWhy(q1State.type)}</div>`
-      : `<strong>✗ Fel.</strong> Det var <strong>${chordName}</strong> — ${typeSv}<div class="why">${chordWhy(q1State.type)}</div>`;
+      ? `<strong>${t('q1-correct')}</strong> Det var <strong>${chordName}</strong> — ${typeName}<div class="why">${chordWhy(q1State.type)}</div>`
+      : `<strong>${t('q1-wrong')}</strong> Det var <strong>${chordName}</strong> — ${typeName}<div class="why">${chordWhy(q1State.type)}</div>`;
     resultEl.classList.remove('hidden');
     document.getElementById('q1-next').classList.remove('hidden');
   }
@@ -1223,9 +1519,9 @@
     // Update chord display
     const rootName  = CB_ROOT_NAMES[c.root];
     const suffix    = c.type === 'minor' ? 'm' : c.type === 'dim' ? 'dim' : c.type === 'aug' ? 'aug' : '';
-    const typeSv    = QUIZ_TYPES.find(t => t.id === c.type).sv;
+    const typeName  = t('quiz-type-' + c.type);
     document.getElementById('q2-name').textContent = rootName + suffix;
-    document.getElementById('q2-type-label').textContent = `${rootName}-${typeSv.toLowerCase()} — ${typeSv}`;
+    document.getElementById('q2-type-label').textContent = `${rootName} ${typeName}`;
     updateQ2Progress();
   }
 
@@ -1254,8 +1550,8 @@
         const resultEl = document.getElementById('q2-result');
         resultEl.className = `quiz-result ${correct ? 'is-correct' : 'is-wrong'}`;
         resultEl.innerHTML = correct
-          ? `<strong>✓ Rätt!</strong> Alla tre toner hittade utan felklick.`
-          : `<strong>Bra jobbat!</strong> Du hittade alla toner${q2State.wrongClicks > 0 ? ` (${q2State.wrongClicks} felklick)` : ''}.`;
+          ? `<strong>${t('q2-result-ok')}</strong>`
+          : `<strong>${t('q2-result-found')}${q2State.wrongClicks > 0 ? ` (${q2State.wrongClicks} ${t('q2-result-wrongs')})` : ''}.</strong>`;
         resultEl.classList.remove('hidden');
         document.getElementById('q2-next').classList.remove('hidden');
         document.getElementById('q2-reveal').disabled = true;
@@ -1269,8 +1565,9 @@
   }
 
   function updateQ2Progress() {
+    if (q2State.root === null) return;
     document.getElementById('q2-progress').innerHTML =
-      `<strong>${q2State.found.size}</strong> / 3 toner funna`;
+      `<strong>${q2State.found.size}</strong> / 3 ${t('q2-progress-of')}`;
   }
 
   function revealQ2() {
@@ -1298,10 +1595,10 @@
 
     const resultEl = document.getElementById('q2-result');
     resultEl.className = 'quiz-result is-wrong';
-    resultEl.innerHTML = `Svaret är: <strong>${t1} – ${t3} – ${t5}</strong><div class="why">${chordWhy(q2State.type)}</div>`;
+    resultEl.innerHTML = `${t('q2-answer-prefix')} <strong>${t1} – ${t3} – ${t5}</strong><div class="why">${chordWhy(q2State.type)}</div>`;
     resultEl.classList.remove('hidden');
     document.getElementById('q2-next').classList.remove('hidden');
-    document.getElementById('q2-progress').innerHTML = `<strong>3</strong> / 3 toner funna`;
+    document.getElementById('q2-progress').innerHTML = `<strong>3</strong> / 3 ${t('q2-progress-of')}`;
   }
 
   // Init quiz when tab is first shown
@@ -1327,7 +1624,7 @@
     { name: 'VI–IV–I–V', degrees: [5,3,0,4], desc: 'Mörk pop (börjar på VI)' },
   ];
 
-  const PROG_TYPE_LABEL = { major: 'Dur', minor: 'Moll', dim: 'Dim' };
+  const progTypeLabel = (type) => t('prog-type-' + type) || type;
   const PROG_SUFFIX     = { major: '', minor: 'm', dim: 'dim', aug: 'aug' };
 
   let progRoot      = 0;
@@ -1366,11 +1663,11 @@
   }
 
   // Presets
-  PRESETS.forEach(p => {
+  PRESETS.forEach((p, i) => {
     const btn = document.createElement('button');
     btn.className   = 'preset-btn';
-    btn.title       = p.desc;
-    btn.innerHTML   = `<strong>${p.name}</strong> <span style="color:#6b7280">— ${p.desc}</span>`;
+    btn.title       = t('preset-desc-' + i);
+    btn.innerHTML   = `<strong>${p.name}</strong> <span style="color:#6b7280">— ${t('preset-desc-' + i)}</span>`;
     btn.onclick     = () => { progression = [...p.degrees]; stopProg(); renderProgSeq(); };
     document.getElementById('prog-presets').appendChild(btn);
   });
@@ -1411,7 +1708,7 @@
       btn.innerHTML   = `
         <span class="pal-numeral">${getProgChordNumeral(deg)}</span>
         <span class="pal-name">${getProgChordName(deg)}</span>
-        <span class="pal-type">${PROG_TYPE_LABEL[type] || type}</span>`;
+        <span class="pal-type">${progTypeLabel(type)}</span>`;
       btn.onclick = () => { if (progression.length < 8) { progression.push(deg); renderProgSeq(); } };
       pal.appendChild(btn);
     });
@@ -1420,7 +1717,7 @@
   function renderProgSeq() {
     const seq = document.getElementById('prog-seq');
     if (progression.length === 0) {
-      seq.innerHTML = '<span class="prog-empty">Klicka på ackord ovan för att bygga din progression</span>';
+      seq.innerHTML = `<span class="prog-empty">${t('prog-empty')}</span>`;
       return;
     }
     seq.innerHTML = '';
@@ -1450,7 +1747,7 @@
   function toggleLoop() {
     progLoop = !progLoop;
     const btn = document.getElementById('loop-btn');
-    btn.textContent = `⟳ Loop: ${progLoop ? 'På' : 'Av'}`;
+    btn.textContent = progLoop ? t('btn-loop-on') : t('btn-loop-off');
     btn.classList.toggle('is-active', progLoop);
   }
 
@@ -1463,7 +1760,7 @@
     if (progression.length === 0) return;
     progPlaying = true;
     progCurIdx  = 0;
-    document.getElementById('play-btn').textContent = '■ Stopp';
+    document.getElementById('play-btn').textContent = t('btn-stop');
     document.getElementById('play-btn').classList.add('is-playing');
     playProgStep();
   }
@@ -1472,7 +1769,7 @@
     progPlaying = false;
     progCurIdx  = -1;
     clearTimeout(progTimer);
-    document.getElementById('play-btn').textContent = '▶ Spela';
+    document.getElementById('play-btn').textContent = t('btn-play');
     document.getElementById('play-btn').classList.remove('is-playing');
     document.getElementById('now-playing').textContent = '';
     // Reset piano
@@ -1505,7 +1802,7 @@
     keys.forEach((k, i) => { if (k !== null) setKeyClass(progKm, k, i === 0 ? 'is-scale-root' : 'is-chord'); });
 
     // Show name
-    document.getElementById('now-playing').textContent = `${num}  ${name}  —  ${PROG_TYPE_LABEL[type] || type}`;
+    document.getElementById('now-playing').textContent = `${num}  ${name}  —  ${progTypeLabel(type)}`;
 
     // Highlight card
     renderProgSeq();
@@ -1576,7 +1873,7 @@
   CB_CHORD_TYPES.forEach(ct => {
     const btn = document.createElement('button');
     btn.className   = 'sel-btn' + (ct.id === cbType ? ' active-type' : '');
-    btn.textContent = `${ct.sv} (${ct.en})`;
+    btn.textContent = t('cb-type-' + ct.id);
     btn.id          = `cb-type-btn-${ct.id}`;
     btn.onclick     = () => { cbType = ct.id; renderChordBuilder(); updateCbTypeBtns(); };
     document.getElementById('cb-type-btns').appendChild(btn);
@@ -1598,7 +1895,7 @@
   buildPiano('piano-cb', cbKm, k => playNote(k));
   renderChordBuilder();
 
-  function renderChordBuilder() {
+  function renderChordBuilder(silent = false) {
     const ct        = CB_CHORD_TYPES.find(t => t.id === cbType);
     const rootName  = CB_ROOT_NAMES[cbRoot];
     const chordName = rootName + CB_SUFFIX[cbType];
@@ -1631,19 +1928,13 @@
     // Build interval structure explanation
     const iv1semi = ct.intervals[1];  // root→third
     const iv2semi = ct.intervals[2] - ct.intervals[1]; // third→fifth
-    const iv1name = iv1semi === 4 ? 'Stor ters' : 'Liten ters';
-    const iv2name = iv2semi === 4 ? 'Stor ters' : iv2semi === 3 ? 'Liten ters' : iv2semi === 5 ? 'Kvart' : `${iv2semi} ht`;
-    const totalName = ct.intervals[2] === 7 ? 'Kvint (7 ht)' :
-                      ct.intervals[2] === 6 ? 'Förminskad kvint (6 ht)' :
-                      ct.intervals[2] === 8 ? 'Förstärkt kvint (8 ht)' : `${ct.intervals[2]} ht`;
+    const iv1name = iv1semi === 4 ? t('int-major-third') : t('int-minor-third');
+    const iv2name = iv2semi === 4 ? t('int-major-third') : iv2semi === 3 ? t('int-minor-third') : iv2semi === 5 ? t('int-perf-fourth') : `${iv2semi} st`;
+    const totalName = ct.intervals[2] === 7 ? t('int-perf-fifth') :
+                      ct.intervals[2] === 6 ? t('int-dim-fifth') :
+                      ct.intervals[2] === 8 ? t('int-aug-fifth') : `${ct.intervals[2]} st`;
 
-    const whyText = cbType === 'major'
-      ? 'Durackord: stor ters ger den ljusa karaktären, liten ters kompletterar till kvint.'
-      : cbType === 'minor'
-      ? 'Mollackord: liten ters ger den mörkare karaktären, stor ters kompletterar till kvint.'
-      : cbType === 'dim'
-      ? 'Förminskad: två lika liten-terskombinationer ger en spänd, instabil klang.'
-      : 'Förstärkt: stor ters + stor ters — kvinten är höjd ett halvsteg, ger en öppen, oavgjord klang.';
+    const whyText = t('cb-why-' + cbType);
 
     // Tone table rows
     const tableRows = toneNames.map((name, i) => `
@@ -1657,7 +1948,7 @@
       <div class="chord-builder-name">${chordName}</div>
       <div class="chord-builder-name-en">${ct.en} chord in ${rootName}</div>
       <table class="chord-tone-table">
-        <thead><tr><th>Ton / Note</th><th>Halvtoner / Semitones</th><th>Skalsteg / Degree</th></tr></thead>
+        <thead><tr><th>${t('ctt-note')}</th><th>${t('ctt-semi')}</th><th>${t('ctt-degree')}</th></tr></thead>
         <tbody>${tableRows}</tbody>
       </table>
       <div class="chord-structure">
@@ -1672,10 +1963,15 @@
       </div>
     `;
 
-    // Play arpeggiated then together
-    chordKeys.forEach((k, i) => { if (k !== null) setTimeout(() => playNote(k), i * 200); });
-    setTimeout(() => chordKeys.forEach(k => { if (k !== null) playNote(k); }), 900);
+    // Play arpeggiated then together (skip on silent re-renders e.g. lang switch)
+    if (!silent) {
+      chordKeys.forEach((k, i) => { if (k !== null) setTimeout(() => playNote(k), i * 200); });
+      setTimeout(() => chordKeys.forEach(k => { if (k !== null) playNote(k); }), 900);
+    }
   }
+
+  // Apply default language on load
+  applyLang();
 
   function applyChordHighlight(pattern) {
     if (selectedDeg === null) return;
