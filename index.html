@@ -794,6 +794,9 @@
       'q2-answer-prefix': 'Svaret är:',
       'q1-correct': '✓ Rätt!',
       'q1-wrong': '✗ Fel.',
+      'q1-it-was': 'Det var',
+      'prog-remove': 'Klicka för att ta bort',
+      'iv-oct': 'okt',
       'reset-score': 'Återställ poäng',
       'quiz-type-major': 'Dur',
       'quiz-type-minor': 'Moll',
@@ -897,6 +900,9 @@
       'q2-answer-prefix': 'The answer is:',
       'q1-correct': '✓ Correct!',
       'q1-wrong': '✗ Wrong.',
+      'q1-it-was': 'It was',
+      'prog-remove': 'Click to remove',
+      'iv-oct': 'oct',
       'reset-score': 'Reset score',
       'quiz-type-major': 'Major',
       'quiz-type-minor': 'Minor',
@@ -1139,7 +1145,7 @@
         <div class="stats">
           <div class="stat"><div class="stat-label">${t('iv-stat-semi')}</div><div class="stat-value">${absSemi}</div><div class="stat-sub">${rawSemi >= 0 ? t('iv-dir-up') : t('iv-dir-down')}</div></div>
           <div class="stat"><div class="stat-label">${t('iv-stat-degree')}</div><div class="stat-value">${iv.degree}</div></div>
-          <div class="stat"><div class="stat-label">${t('iv-stat-notes')}</div><div class="stat-value" style="font-size:1.1rem">${NOTES[rk.noteIndex]} → ${NOTES[tk.noteIndex]}</div><div class="stat-sub">okt ${rk.octave} → ${tk.octave}</div></div>
+          <div class="stat"><div class="stat-label">${t('iv-stat-notes')}</div><div class="stat-value" style="font-size:1.1rem">${NOTES[rk.noteIndex]} → ${NOTES[tk.noteIndex]}</div><div class="stat-sub">${t('iv-oct')} ${rk.octave} → ${tk.octave}</div></div>
         </div></div>`;
       playNote(ivRoot); setTimeout(() => playNote(i), 550);
     }
@@ -1509,8 +1515,8 @@
     resultEl.className = `quiz-result ${correct ? 'is-correct' : 'is-wrong'}`;
     const typeName = t('quiz-type-' + q1State.type);
     resultEl.innerHTML = correct
-      ? `<strong>${t('q1-correct')}</strong> Det var <strong>${chordName}</strong> — ${typeName}<div class="why">${chordWhy(q1State.type)}</div>`
-      : `<strong>${t('q1-wrong')}</strong> Det var <strong>${chordName}</strong> — ${typeName}<div class="why">${chordWhy(q1State.type)}</div>`;
+      ? `<strong>${t('q1-correct')}</strong> ${t('q1-it-was')} <strong>${chordName}</strong> — ${typeName}<div class="why">${chordWhy(q1State.type)}</div>`
+      : `<strong>${t('q1-wrong')}</strong> ${t('q1-it-was')} <strong>${chordName}</strong> — ${typeName}<div class="why">${chordWhy(q1State.type)}</div>`;
     resultEl.classList.remove('hidden');
     document.getElementById('q1-next').classList.remove('hidden');
   }
@@ -1719,9 +1725,11 @@
     const ivals   = CHORD_INTERVALS[type];
     let rootKey   = null;
     for (let k = 0; k < 12; k++) { if (k % 12 === progRoot) { rootKey = k; break; } }
+    let chordRoot = rootKey + pattern[deg];
+    const maxIv = Math.max(...ivals);
+    if (chordRoot + maxIv >= SPAN) chordRoot -= 12;
     return ivals.map(iv => {
-      let k = rootKey + pattern[deg] + iv;
-      if (k >= SPAN) k -= 12;
+      const k = chordRoot + iv;
       return (k >= 0 && k < SPAN) ? k : null;
     });
   }
@@ -1755,7 +1763,7 @@
       card.innerHTML = `
         <span class="prog-card-num">${getProgChordNumeral(deg)}</span>
         <span class="prog-card-name">${getProgChordName(deg)}</span>`;
-      card.title  = 'Klicka för att ta bort';
+      card.title  = t('prog-remove');
       card.style.cursor = 'pointer';
       card.onclick = () => {
         progression.splice(i, 1);
@@ -1940,10 +1948,11 @@
     let rootKey = null;
     for (let k = 12; k < 24; k++) { if (k % 12 === cbRoot) { rootKey = k; break; } }
     if (rootKey === null) for (let k = 0; k < 12; k++) { if (k % 12 === cbRoot) { rootKey = k; break; } }
+    const maxIvCb = Math.max(...ct.intervals);
+    if (rootKey + maxIvCb >= SPAN) rootKey -= 12;
 
     const chordKeys = ct.intervals.map(semi => {
-      let k = rootKey + semi;
-      if (k >= SPAN) k -= 12;
+      const k = rootKey + semi;
       return (k >= 0 && k < SPAN) ? k : null;
     });
 
@@ -2010,9 +2019,11 @@
     for (let k = 0; k < SPAN; k++) { if (k % 12 === scaleRoot) { rootKeyIdx = k; break; } }
 
     const chordRootOffset = pattern[selectedDeg];
+    let chordRoot = rootKeyIdx + chordRootOffset;
+    const maxIvSc = Math.max(...civals);
+    if (chordRoot + maxIvSc >= SPAN) chordRoot -= 12;
     const chordKeys = civals.map(interval => {
-      let k = rootKeyIdx + chordRootOffset + interval;
-      if (k >= SPAN) k -= 12;
+      const k = chordRoot + interval;
       return (k >= 0 && k < SPAN) ? k : null;
     });
 
