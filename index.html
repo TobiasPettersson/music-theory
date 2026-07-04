@@ -168,6 +168,71 @@
     .reset-btn:hover, .audio-btn:hover { background: #4b5563; }
     .audio-btn.muted { color: #6b7280; }
 
+    /* ── Guitar fretboard ── */
+    .fretboard-wrapper {
+      overflow-x: auto;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    .fretboard { flex-shrink: 0; width: max-content; }
+    .gt-row { display: flex; align-items: center; height: 36px; }
+    .gt-str-label {
+      width: 24px; text-align: center; flex-shrink: 0;
+      font-size: 0.72rem; font-weight: 700; color: #9ca3af;
+      font-family: monospace;
+    }
+    .gt-cell {
+      position: relative;
+      width: 52px; height: 100%;
+      border-right: 2px solid #4b5563;
+      cursor: pointer;
+      flex-shrink: 0;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .gt-cell:hover::after {
+      content: ''; position: absolute; inset: 2px;
+      background: rgba(255,255,255,0.05); border-radius: 6px;
+    }
+    /* The string runs through the middle of every cell; thickness per string */
+    .gt-cell::before {
+      content: ''; position: absolute; left: 0; right: 0; top: 50%;
+      height: var(--strw, 1px); transform: translateY(-50%);
+      background: #6b7280; pointer-events: none;
+    }
+    /* Open-string column + nut */
+    .gt-cell.gt-open { width: 44px; border-right: 5px solid #d1d5db; }
+    .gt-cell.gt-open::before { background: transparent; }
+    .gt-dot {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 27px; height: 27px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; font-weight: 700; color: #fff;
+      z-index: 2; pointer-events: none;
+      line-height: 1;
+    }
+    .gt-dot.is-tone      { background: #7c3aed; }
+    .gt-dot.is-chordtone { background: #059669; }
+    .gt-dot.is-root      { background: #f59e0b; }
+    /* Fret numbers + inlay markers */
+    .gt-fretnums { display: flex; height: 22px; align-items: center; }
+    .gt-fretnums .gt-num {
+      width: 52px; flex-shrink: 0; text-align: center;
+      font-size: 0.62rem; color: #4b5563; font-family: monospace;
+    }
+    .gt-fretnums .gt-num.gt-open-num { width: 44px; }
+    .gt-fretnums .gt-num.gt-marker { color: #9ca3af; font-weight: 700; }
+
+    @media (max-width: 640px) {
+      .gt-cell, .gt-fretnums .gt-num { width: 42px; }
+      .gt-cell.gt-open, .gt-fretnums .gt-num.gt-open-num { width: 38px; }
+      .gt-dot { width: 24px; height: 24px; font-size: 0.55rem; }
+    }
+
     /* ── Language toggle ── */
     .lang-toggle {
       position: fixed;
@@ -513,6 +578,7 @@
   <button class="tab-btn active" id="tab-btn-intervals" onclick="showTab('intervals')" data-i18n="tab-intervals">Intervaller</button>
   <button class="tab-btn"        id="tab-btn-scales"    onclick="showTab('scales')"    data-i18n="tab-scales">Skalor</button>
   <button class="tab-btn"        id="tab-btn-chords"    onclick="showTab('chords')"    data-i18n="tab-chords">Ackord</button>
+  <button class="tab-btn"        id="tab-btn-guitar"    onclick="showTab('guitar')"    data-i18n="tab-guitar">Gitarr</button>
   <button class="tab-btn"        id="tab-btn-prog"      onclick="showTab('prog')"      data-i18n="tab-prog">Progressioner</button>
   <button class="tab-btn"        id="tab-btn-quiz"      onclick="showTab('quiz')"      data-i18n="tab-quiz">Övning</button>
 </nav>
@@ -573,6 +639,39 @@
 
 </section>
 
+<!-- ══ GITARR ═══════════════════════════════════════════════ -->
+<section class="tab-section" id="tab-guitar">
+
+  <div class="selector-group">
+    <div class="selector-label" data-i18n="gt-root-label">Grundton</div>
+    <div class="selector-btns" id="gt-root-btns"></div>
+  </div>
+
+  <div class="selector-group">
+    <div class="selector-label" data-i18n="gt-mode-label">Visa</div>
+    <div class="selector-btns">
+      <button class="sel-btn active-type" id="gt-mode-btn-scale" onclick="selectGtMode('scale')" data-i18n="gt-mode-scale">Skala</button>
+      <button class="sel-btn"             id="gt-mode-btn-chord" onclick="selectGtMode('chord')" data-i18n="gt-mode-chord">Ackord</button>
+    </div>
+  </div>
+
+  <div class="selector-group">
+    <div class="selector-label" data-i18n="gt-type-label">Typ</div>
+    <div class="selector-btns" id="gt-type-btns"></div>
+  </div>
+
+  <div class="fretboard-wrapper"><div class="fretboard" id="fretboard"></div></div>
+
+  <div class="scale-info" id="gt-info"></div>
+
+  <p class="chord-hint" data-i18n="gt-hint">Standardstämning EADGBE · klicka var som helst på greppbrädan för att höra tonen</p>
+
+  <div class="btn-row">
+    <button class="audio-btn" onclick="toggleAudio()" data-i18n="audio-on">♪ Ljud: På</button>
+  </div>
+
+</section>
+
 <!-- ══ PROGRESSIONER ════════════════════════════════════════ -->
 <section class="tab-section" id="tab-prog">
 
@@ -602,7 +701,7 @@
     <button class="reset-btn audio-btn loop-btn" id="loop-btn" onclick="toggleLoop()" data-i18n="btn-loop-off">⟳ Loop: Av</button>
     <button class="audio-btn" onclick="toggleAudio()" data-i18n="audio-on">♪ Ljud: På</button>
     <div class="tempo-wrap">
-      <label for="prog-tempo">Tempo:</label>
+      <label for="prog-tempo" data-i18n="prog-tempo">Tempo:</label>
       <input type="range" id="prog-tempo" min="40" max="180" value="75" oninput="updateTempo()">
       <label id="prog-tempo-label">75 BPM</label>
     </div>
@@ -694,7 +793,8 @@
   // ═══════════════════════════════════════════════════════════
   // LANGUAGE
   // ═══════════════════════════════════════════════════════════
-  let lang = 'en';
+  // Swedish is the default; the choice persists across visits.
+  let lang = localStorage.getItem('mt-lang') === 'en' ? 'en' : 'sv';
 
   const TRANSLATIONS = {
     sv: {
@@ -740,6 +840,7 @@
       'why-major': '<strong>Stor ters</strong> (4 ht) + <strong>liten ters</strong> (3 ht) → durklang',
       'why-minor': '<strong>Liten ters</strong> (3 ht) + <strong>stor ters</strong> (4 ht) → mollklang',
       'why-dim':   '<strong>Liten ters</strong> (3 ht) + <strong>liten ters</strong> (3 ht) → förminskad',
+      'why-aug':   '<strong>Stor ters</strong> (4 ht) + <strong>stor ters</strong> (4 ht) → förstärkt',
       'cb-root-label': 'Grundton',
       'cb-type-label': 'Ackordtyp',
       'cb-hint': 'Välj grundton och typ ovan',
@@ -802,6 +903,15 @@
       'quiz-type-minor': 'Moll',
       'quiz-type-dim': 'Förminskad',
       'quiz-type-aug': 'Förstärkt',
+      'tab-guitar': 'Gitarr',
+      'gt-root-label': 'Grundton',
+      'gt-mode-label': 'Visa',
+      'gt-mode-scale': 'Skala',
+      'gt-mode-chord': 'Ackord',
+      'gt-type-label': 'Typ',
+      'gt-hint': 'Standardstämning EADGBE · klicka var som helst på greppbrädan för att höra tonen',
+      'gt-tones-label': 'Toner',
+      'prog-tempo': 'Tempo:',
     },
     en: {
       'app-title': 'Music Theory',
@@ -846,6 +956,7 @@
       'why-major': '<strong>Major third</strong> (4 st) + <strong>minor third</strong> (3 st) → major chord',
       'why-minor': '<strong>Minor third</strong> (3 st) + <strong>major third</strong> (4 st) → minor chord',
       'why-dim':   '<strong>Minor third</strong> (3 st) + <strong>minor third</strong> (3 st) → diminished chord',
+      'why-aug':   '<strong>Major third</strong> (4 st) + <strong>major third</strong> (4 st) → augmented chord',
       'cb-root-label': 'Root note',
       'cb-type-label': 'Chord type',
       'cb-hint': 'Choose root note and type above',
@@ -908,6 +1019,15 @@
       'quiz-type-minor': 'Minor',
       'quiz-type-dim': 'Diminished',
       'quiz-type-aug': 'Augmented',
+      'tab-guitar': 'Guitar',
+      'gt-root-label': 'Root note',
+      'gt-mode-label': 'Show',
+      'gt-mode-scale': 'Scale',
+      'gt-mode-chord': 'Chord',
+      'gt-type-label': 'Type',
+      'gt-hint': 'Standard tuning EADGBE · click anywhere on the fretboard to hear the note',
+      'gt-tones-label': 'Notes',
+      'prog-tempo': 'Tempo:',
     },
   };
 
@@ -915,6 +1035,7 @@
 
   function toggleLang() {
     lang = lang === 'sv' ? 'en' : 'sv';
+    localStorage.setItem('mt-lang', lang);
     applyLang();
   }
 
@@ -955,22 +1076,13 @@
     });
 
     // Rebuild presets (descriptions change)
-    const presetsEl = document.getElementById('prog-presets');
-    if (presetsEl) {
-      presetsEl.innerHTML = '';
-      PRESETS.forEach((p, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'preset-btn';
-        btn.title = t('preset-desc-' + i);
-        btn.innerHTML = `<strong>${p.name}</strong> <span style="color:#6b7280">— ${t('preset-desc-' + i)}</span>`;
-        btn.onclick = () => { progression = [...p.degrees]; stopProg(); renderProgSeq(); };
-        presetsEl.appendChild(btn);
-      });
-    }
+    renderPresets();
 
-    // Re-render dynamic sections
-    renderScale();
+    // Re-render dynamic sections (silent — a language switch must never play audio)
+    renderScale(true);
     renderChordBuilder(true);
+    renderGtTypeBtns();
+    renderGuitar();
     renderProgPalette();
     renderProgSeq();
     updateQuizScore();
@@ -996,10 +1108,12 @@
     return 440 * Math.pow(2, (midi - 69) / 12);
   }
 
-  function playNote(keyIndex) {
+  function playNote(keyIndex) { playFreq(noteToFreq(keyIndex)); }
+  function playMidi(midi)     { playFreq(440 * Math.pow(2, (midi - 69) / 12)); }
+
+  function playFreq(freq) {
     if (!audioEnabled) return;
     initAudio();
-    const freq = noteToFreq(keyIndex);
     const now  = audioCtx.currentTime;
     const env  = audioCtx.createGain();
     env.connect(masterOut);
@@ -1109,10 +1223,37 @@
     19: { sv: 'Ren duodecima',      en: 'Perfect 12th',    degree: '12'  },
     20: { sv: 'Liten tredecima',    en: 'Minor 13th',      degree: 'b13' },
     21: { sv: 'Stor tredecima',     en: 'Major 13th',      degree: '13'  },
-    22: { sv: 'Liten fjortondel',   en: 'Minor 14th',      degree: 'b14' },
-    23: { sv: 'Stor fjortondel',    en: 'Major 14th',      degree: '14'  },
+    22: { sv: 'Liten kvartdecima',  en: 'Minor 14th',      degree: 'b14' },
+    23: { sv: 'Stor kvartdecima',   en: 'Major 14th',      degree: '14'  },
     24: { sv: 'Dubbeloktav',        en: 'Double octave',   degree: '15'  },
   };
+
+  // ── Correct interval spelling ────────────────────────────────
+  // A minor third from C is Eb, not D# — the target note's letter is fixed by
+  // the interval's scale degree, the accidental follows from the semitones.
+  // Letter steps per simple interval 0–11 (tritone is ambiguous, handled below).
+  const IV_LETTER_STEPS = [0, 1, 1, 2, 2, 3, null, 4, 5, 5, 6, 6];
+
+  function spellFromRoot(rootNi, letterSteps, semis, dir) {
+    const targetLetter = ((PREF_LETTER[rootNi] + dir * letterSteps) % 7 + 7) % 7;
+    const natSemi      = LTR_SEMI[targetLetter];
+    const actualSemi   = ((rootNi + dir * semis) % 12 + 12) % 12;
+    let acc = actualSemi - natSemi;
+    if (acc >  6) acc -= 12;
+    if (acc < -6) acc += 12;
+    const accStr = acc ===  1 ? '#' : acc === -1 ? 'b' :
+                   acc ===  2 ? '##': acc === -2 ? 'bb' : '';
+    return LTR[targetLetter] + accStr;
+  }
+
+  function intervalTargetName(rootNi, absSemi, dir) {
+    const simple = absSemi % 12;
+    if (simple === 6) {
+      // Tritone: both enharmonic spellings (#4 and b5) are equally valid
+      return `${spellFromRoot(rootNi, 3, absSemi, dir)}/${spellFromRoot(rootNi, 4, absSemi, dir)}`;
+    }
+    return spellFromRoot(rootNi, IV_LETTER_STEPS[simple], absSemi, dir);
+  }
 
   const ivKm = {};
   buildPiano('piano-iv', ivKm, onIvKey);
@@ -1123,7 +1264,7 @@
   function onIvKey(i) {
     if (ivRoot === null) {
       ivRoot = i; setKeyClass(ivKm, i, 'is-root');
-      infoIv.innerHTML = `<div><div class="root-note">${NOTES[ivKm[i].noteIndex]}${ivKm[i].octave}</div><div class="hint">${t('iv-root-chosen')}</div></div>`;
+      infoIv.innerHTML = `<div><div class="root-note">${CB_ROOT_NAMES[ivKm[i].noteIndex]}${ivKm[i].octave}</div><div class="hint">${t('iv-root-chosen')}</div></div>`;
       playNote(i);
     } else if (i === ivRoot) {
       resetIv();
@@ -1138,6 +1279,8 @@
       const octaveWord = lang === 'sv' ? 'oktav' : 'octave';
       const compoundNote = simpleIv ? `= ${lang === 'sv' ? simpleIv.sv.toLowerCase() : simpleIv.en.toLowerCase()} + ${octaveWord}` : '';
       const rk = ivKm[ivRoot], tk = ivKm[i];
+      const rootName   = CB_ROOT_NAMES[rk.noteIndex];
+      const targetName = intervalTargetName(rk.noteIndex, absSemi, rawSemi >= 0 ? 1 : -1);
       infoIv.innerHTML = `<div style="width:100%">
         <div class="result-name-sv">${lang === 'sv' ? iv.sv : iv.en}</div>
         ${lang === 'sv' ? `<div class="result-name-en">${iv.en}</div>` : ''}
@@ -1145,7 +1288,7 @@
         <div class="stats">
           <div class="stat"><div class="stat-label">${t('iv-stat-semi')}</div><div class="stat-value">${absSemi}</div><div class="stat-sub">${rawSemi >= 0 ? t('iv-dir-up') : t('iv-dir-down')}</div></div>
           <div class="stat"><div class="stat-label">${t('iv-stat-degree')}</div><div class="stat-value">${iv.degree}</div></div>
-          <div class="stat"><div class="stat-label">${t('iv-stat-notes')}</div><div class="stat-value" style="font-size:1.1rem">${NOTES[rk.noteIndex]} → ${NOTES[tk.noteIndex]}</div><div class="stat-sub">${t('iv-oct')} ${rk.octave} → ${tk.octave}</div></div>
+          <div class="stat"><div class="stat-label">${t('iv-stat-notes')}</div><div class="stat-value" style="font-size:1.1rem">${rootName} → ${targetName}</div><div class="stat-sub">${t('iv-oct')} ${rk.octave} → ${tk.octave}</div></div>
         </div></div>`;
       playNote(ivRoot); setTimeout(() => playNote(i), 550);
     }
@@ -1228,7 +1371,7 @@
   // Root note display names using standard chord spellings (sharps/flats)
   const CB_ROOT_NAMES    = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
 
-  function chordWhy(type) { return t('why-' + type) ?? t('why-dim'); }
+  function chordWhy(type) { return t('why-' + type); }
 
   let scaleRoot = 9; // A
   let scaleType = 'major';
@@ -1263,7 +1406,7 @@
 
   function onScKey(i) { playNote(i); }
 
-  function renderScale() {
+  function renderScale(silent = false) {
     const pattern    = SCALE_PATTERNS[scaleType];
     const steps      = STEP_PATTERNS[scaleType];
     const noteNames  = SCALE_NOTE_NAMES[scaleType][scaleRoot];
@@ -1336,7 +1479,7 @@
     renderChords(noteNames, pattern);
 
     // If a chord was selected before, re-apply its highlight
-    if (selectedDeg !== null) applyChordHighlight(pattern);
+    if (selectedDeg !== null) applyChordHighlight(pattern, silent);
   }
 
   function renderChords(noteNames, pattern) {
@@ -1349,7 +1492,10 @@
       const third  = noteNames[(deg + 2) % 7];
       const fifth  = noteNames[(deg + 4) % 7];
       const suffix = type === 'minor' ? 'm' : type === 'dim' ? 'dim' : '';
-      const numeral = type === 'minor' ? ROMAN[deg].toLowerCase() : ROMAN[deg];
+      // Convention: minor and diminished chords in lowercase, dim marked with °
+      const numeral = type === 'minor' ? ROMAN[deg].toLowerCase()
+                    : type === 'dim'   ? ROMAN[deg].toLowerCase() + '°'
+                    : ROMAN[deg];
       const badgeClass = `badge-${type}`;
       const badgeLabel = t('badge-' + type);
 
@@ -1616,7 +1762,7 @@
       }
     });
     // Play chord
-    quizChordKeys(q2State.root, q2State.type).forEach(k => { if (k) playNote(k); });
+    quizChordKeys(q2State.root, q2State.type).forEach(k => { if (k !== null) playNote(k); });
 
     const ivals = CHORD_INTERVALS[q2State.type];
     const t1 = CB_ROOT_NAMES[q2State.root];
@@ -1669,11 +1815,13 @@
   let progCurIdx    = -1;
   const progKm      = {};
 
-  // Root selector
-  CB_ROOT_NAMES.forEach((name, i) => {
+  // Root selector — labels use the actual key spelling for the current scale
+  // type (SCALE_NOTE_NAMES picks e.g. Db major but C# minor), so the button
+  // always matches the chord names shown in the palette.
+  NOTES.forEach((_, i) => {
     const btn = document.createElement('button');
     btn.className   = 'sel-btn' + (i === progRoot ? ' active-root' : '');
-    btn.textContent = name;
+    btn.textContent = SCALE_NOTE_NAMES[progScaleType][i][0];
     btn.id          = `prog-root-btn-${i}`;
     btn.onclick     = () => {
       progRoot = i;
@@ -1686,24 +1834,40 @@
     document.getElementById('prog-root-btns').appendChild(btn);
   });
 
+  function updateProgRootLabels() {
+    NOTES.forEach((_, i) => {
+      document.getElementById(`prog-root-btn-${i}`).textContent =
+        SCALE_NOTE_NAMES[progScaleType][i][0];
+    });
+  }
+
   function selectProgScale(type) {
     progScaleType = type;
     document.getElementById('prog-scale-btn-major').classList.toggle('active-type', type === 'major');
     document.getElementById('prog-scale-btn-minor').classList.toggle('active-type', type === 'minor');
+    updateProgRootLabels();
     stopProg();
+    renderPresets();
     renderProgPalette();
     renderProgSeq();
   }
 
-  // Presets
-  PRESETS.forEach((p, i) => {
-    const btn = document.createElement('button');
-    btn.className   = 'preset-btn';
-    btn.title       = t('preset-desc-' + i);
-    btn.innerHTML   = `<strong>${p.name}</strong> <span style="color:#6b7280">— ${t('preset-desc-' + i)}</span>`;
-    btn.onclick     = () => { progression = [...p.degrees]; stopProg(); renderProgSeq(); };
-    document.getElementById('prog-presets').appendChild(btn);
-  });
+  // Presets — numerals rendered with the correct case for the current scale
+  // type (I–V–vi–IV in major becomes i–v–VI–iv in minor).
+  function renderPresets() {
+    const presetsEl = document.getElementById('prog-presets');
+    presetsEl.innerHTML = '';
+    PRESETS.forEach((p, i) => {
+      const label = p.degrees.map(getProgChordNumeral).join('–');
+      const btn = document.createElement('button');
+      btn.className   = 'preset-btn';
+      btn.title       = t('preset-desc-' + i);
+      btn.innerHTML   = `<strong>${label}</strong> <span style="color:#6b7280">— ${t('preset-desc-' + i)}</span>`;
+      btn.onclick     = () => { progression = [...p.degrees]; stopProg(); renderProgSeq(); };
+      presetsEl.appendChild(btn);
+    });
+  }
+  renderPresets();
 
   buildPiano('piano-prog', progKm, k => playNote(k));
   renderProgPalette();
@@ -1716,7 +1880,9 @@
 
   function getProgChordNumeral(deg) {
     const type = CHORD_QUALITIES[progScaleType][deg];
-    return type === 'minor' ? ROMAN[deg].toLowerCase() : ROMAN[deg] + (type === 'dim' ? '°' : '');
+    return type === 'minor' ? ROMAN[deg].toLowerCase()
+         : type === 'dim'   ? ROMAN[deg].toLowerCase() + '°'
+         : ROMAN[deg];
   }
 
   function getProgChordKeys(deg) {
@@ -2006,10 +2172,166 @@
     }
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // GUITAR FRETBOARD
+  // ═══════════════════════════════════════════════════════════
+
+  // Standard tuning, top-to-bottom as on a chord diagram (high e first).
+  const GT_TUNING = [
+    { label: 'e', midi: 64 },
+    { label: 'B', midi: 59 },
+    { label: 'G', midi: 55 },
+    { label: 'D', midi: 50 },
+    { label: 'A', midi: 45 },
+    { label: 'E', midi: 40 },
+  ];
+  const GT_FRETS   = 12;
+  const GT_MARKERS = [3, 5, 7, 9, 12];
+
+  let gtRoot = 4;        // E — home turf for a guitarist
+  let gtMode = 'scale';  // 'scale' | 'chord'
+  let gtType = 'major';  // scale: major|minor · chord: major|minor|dim|aug
+
+  // Root buttons (dual labels like the scales tab — always spelling-safe)
+  NOTES.forEach((_, i) => {
+    const btn = document.createElement('button');
+    btn.className   = 'sel-btn' + (i === gtRoot ? ' active-root' : '');
+    btn.textContent = ROOT_DISPLAY[i];
+    btn.id          = `gt-root-btn-${i}`;
+    btn.onclick     = () => {
+      gtRoot = i;
+      document.querySelectorAll('#gt-root-btns .sel-btn').forEach(b => b.classList.remove('active-root'));
+      btn.classList.add('active-root');
+      renderGuitar();
+    };
+    document.getElementById('gt-root-btns').appendChild(btn);
+  });
+
+  function selectGtMode(mode) {
+    gtMode = mode;
+    // Keep the type valid across modes (dim/aug only exist for chords)
+    if (mode === 'scale' && gtType !== 'major' && gtType !== 'minor') gtType = 'major';
+    document.getElementById('gt-mode-btn-scale').classList.toggle('active-type', mode === 'scale');
+    document.getElementById('gt-mode-btn-chord').classList.toggle('active-type', mode === 'chord');
+    renderGtTypeBtns();
+    renderGuitar();
+  }
+
+  function selectGtType(type) {
+    gtType = type;
+    renderGtTypeBtns();
+    renderGuitar();
+  }
+
+  function renderGtTypeBtns() {
+    const el = document.getElementById('gt-type-btns');
+    el.innerHTML = '';
+    const types = gtMode === 'scale'
+      ? [{ id: 'major', key: 'sc-btn-major' }, { id: 'minor', key: 'sc-btn-minor' }]
+      : CB_CHORD_TYPES.map(ct => ({ id: ct.id, key: 'cb-type-' + ct.id }));
+    types.forEach(({ id, key }) => {
+      const btn = document.createElement('button');
+      btn.className   = 'sel-btn' + (id === gtType ? ' active-type' : '');
+      btn.textContent = t(key);
+      btn.onclick     = () => selectGtType(id);
+      el.appendChild(btn);
+    });
+  }
+
+  // pitch class (0–11) → { name, degree } for the current selection
+  function gtToneMap() {
+    const map = new Map();
+    if (gtMode === 'scale') {
+      const names = SCALE_NOTE_NAMES[gtType][gtRoot];
+      SCALE_PATTERNS[gtType].forEach((off, d) => {
+        map.set((gtRoot + off) % 12, { name: names[d], degree: String(d + 1) });
+      });
+    } else {
+      const ct = CB_CHORD_TYPES.find(c => c.id === gtType);
+      const letterOffsets = [0, 2, 4];
+      ct.intervals.forEach((semi, i) => {
+        const name = i === 0 ? CB_ROOT_NAMES[gtRoot] : chordToneName(gtRoot, letterOffsets[i], semi);
+        map.set((gtRoot + semi) % 12, { name, degree: ct.degrees[i] });
+      });
+    }
+    return map;
+  }
+
+  function renderGuitar() {
+    const board = document.getElementById('fretboard');
+    if (!board) return;
+    const tones = gtToneMap();
+    board.innerHTML = '';
+
+    GT_TUNING.forEach((str, si) => {
+      const row = document.createElement('div');
+      row.className = 'gt-row';
+      // Thicker strings toward the low E
+      row.style.setProperty('--strw', `${1 + si * 0.4}px`);
+      const lbl = document.createElement('span');
+      lbl.className = 'gt-str-label';
+      lbl.textContent = str.label;
+      row.appendChild(lbl);
+
+      for (let f = 0; f <= GT_FRETS; f++) {
+        const midi = str.midi + f;
+        const cell = document.createElement('div');
+        cell.className = 'gt-cell' + (f === 0 ? ' gt-open' : '');
+        const tone = tones.get(midi % 12);
+        if (tone) {
+          const dot = document.createElement('span');
+          const isRoot = midi % 12 === gtRoot;
+          dot.className = 'gt-dot ' + (isRoot ? 'is-root' : gtMode === 'chord' ? 'is-chordtone' : 'is-tone');
+          dot.textContent = tone.name;
+          dot.title = tone.degree;
+          cell.appendChild(dot);
+        }
+        cell.addEventListener('click', () => playMidi(midi));
+        row.appendChild(cell);
+      }
+      board.appendChild(row);
+    });
+
+    // Fret number row (with inlay-marker frets highlighted)
+    const nums = document.createElement('div');
+    nums.className = 'gt-fretnums';
+    nums.appendChild(Object.assign(document.createElement('span'), { className: 'gt-str-label' }));
+    for (let f = 0; f <= GT_FRETS; f++) {
+      const n = document.createElement('span');
+      n.className = 'gt-num' + (f === 0 ? ' gt-open-num' : '') + (GT_MARKERS.includes(f) ? ' gt-marker' : '');
+      n.textContent = f === 0 ? '0' : GT_MARKERS.includes(f) ? (f === 12 ? '12 ••' : `${f} •`) : String(f);
+      nums.appendChild(n);
+    }
+    board.appendChild(nums);
+
+    // Info box: name + tone bubbles (same look as the scales tab)
+    const rootName = gtMode === 'scale' ? SCALE_NOTE_NAMES[gtType][gtRoot][0] : CB_ROOT_NAMES[gtRoot];
+    let title;
+    if (gtMode === 'scale') {
+      title = lang === 'sv'
+        ? `${rootName}-${t('scale-name-' + gtType)}`
+        : `${rootName} ${t('scale-name-' + gtType)}`;
+    } else {
+      title = `${rootName}${CB_SUFFIX[gtType]} — ${t('cb-type-' + gtType)}`;
+    }
+    const ordered = [...tones.entries()]
+      .sort((a, b) => ((a[0] - gtRoot + 12) % 12) - ((b[0] - gtRoot + 12) % 12));
+    const bubbles = ordered.map(([pc, tone]) =>
+      `<span class="tone-bubble ${pc === gtRoot ? 'is-root-bubble' : ''}">${tone.name}</span>`
+    ).join('');
+    document.getElementById('gt-info').innerHTML = `
+      <div class="scale-title">${title}</div>
+      <div class="scale-tones">${bubbles}</div>
+    `;
+  }
+
+  renderGtTypeBtns();
+  renderGuitar();
+
   // Apply default language on load
   applyLang();
 
-  function applyChordHighlight(pattern) {
+  function applyChordHighlight(pattern, silent = false) {
     if (selectedDeg === null) return;
     const type = CHORD_QUALITIES[scaleType][selectedDeg];
     const civals = CHORD_INTERVALS[type];
@@ -2029,9 +2351,11 @@
 
     chordKeys.forEach(k => { if (k !== null) setKeyClass(scKm, k, 'is-chord'); });
 
-    // Play arpeggiated, then together
-    chordKeys.forEach((k, i) => { if (k !== null) setTimeout(() => playNote(k), i * 200); });
-    setTimeout(() => chordKeys.forEach(k => { if (k !== null) playNote(k); }), 900);
+    // Play arpeggiated, then together (skip on silent re-renders e.g. lang switch)
+    if (!silent) {
+      chordKeys.forEach((k, i) => { if (k !== null) setTimeout(() => playNote(k), i * 200); });
+      setTimeout(() => chordKeys.forEach(k => { if (k !== null) playNote(k); }), 900);
+    }
   }
 </script>
 </body>

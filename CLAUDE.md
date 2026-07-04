@@ -20,12 +20,19 @@ Interaktiv musikteori-webapp för Tobbe, gitarrist och pianist på avancerad nyb
 | **Ackord** | Välj grundton + typ (Dur/Moll/Dim/Aug). Pianohighlight, tontabell (ton/halvtoner/skalsteg), intervalstruktur med förklaring. |
 | **Progressioner** | Palett med 7 diatoniska ackord, bygg sekvens, presets (I–IV–V etc.), BPM-slider, loop, uppspelning med pianohighlight. |
 | **Övning** | Quiz 1: gissa ackordtyp. Quiz 2: hitta ackordtoner på piano. Poängräkning. |
-| **SV/EN-knapp** | Knapp uppe till höger växlar hela UI:t mellan svenska och engelska. Alla texter, förklaringar och knappar översatta. |
-| **Mobilanpassning** | Responsiv CSS, scrollbar flik-nav, horisontell scroll på referenstabell, grid-justeringar. |
+| **Gitarr** | Greppbräda 0–12 band, standardstämning EADGBE (höga e överst). Skala (dur/moll) eller ackord (4 typer) per grundton. Korrekta tonnamn på pricksarna, rot i orange, banddots-markörer, klick spelar rätt tonhöjd (E2–E5). |
+| **SV/EN-knapp** | Knapp uppe till höger växlar hela UI:t mellan svenska och engelska. Alla texter, förklaringar och knappar översatta. Standard: svenska; valet sparas i `localStorage` (`mt-lang`). |
+| **Mobilanpassning** | Responsiv CSS, scrollbar flik-nav, horisontell scroll på referenstabell och greppbräda, grid-justeringar. |
 
-### ❌ Återstår
+### 🔧 Buggfixar 2026-07-05
 
-- **Gitarrvy** — ackord och skalor på gitarrhals (inget påbörjat)
+- `why-aug`-översättning saknades → quizresultat för förstärkta ackord visade rå nyckel.
+- Förminskade ackord skrivs nu **vii°** (gemener + ring) konsekvent i både Skalor och Progressioner.
+- Progressioner: tonartsknapparnas etiketter följer nu skalans stavning (Db i dur, C# i moll).
+- Preset-etiketter genereras från skalsteg med korrekt versalisering (I–V–vi–IV; i moll i–v–VI–iv).
+- Språkbyte spelar inte längre upp valt ackord (silent re-render).
+- Intervallfliken stavar nu måltonen korrekt (C→Eb, inte C→D#; tritonus visar båda: F#/Gb).
+- "Fjortondel" → **kvartdecima** i intervalltabellen.
 
 ---
 
@@ -38,7 +45,7 @@ Interaktiv musikteori-webapp för Tobbe, gitarrist och pianist på avancerad nyb
 
 ### Språksystem
 ```javascript
-let lang = 'sv'; // eller 'en'
+let lang = localStorage.getItem('mt-lang') === 'en' ? 'en' : 'sv'; // default sv, persistent
 const TRANSLATIONS = { sv: {...}, en: {...} };
 function t(key) { ... }       // hämta översättning
 function toggleLang() { ... } // växla språk
@@ -55,8 +62,14 @@ const SCALE_NOTE_NAMES   // korrekt notnamnstavning för alla 24 tonarter
 const CHORD_QUALITIES    // diatoniska ackordtyper per skalsteg
 const CB_CHORD_TYPES     // ackordtyper med intervall och skalsteg
 const INTERVALS          // alla 13 intervaller med sv/en-namn
-const PRESETS            // färdiga progressioner (6 st)
+const PRESETS            // färdiga progressioner (6 st) — etiketter genereras från degrees
+const GT_TUNING          // gitarrsträngar (höga e först) med MIDI-nummer för öppen sträng
+const IV_LETTER_STEPS    // bokstavssteg per intervall → korrekt stavning (spellFromRoot)
 ```
+
+### Ljud
+- `playFreq(freq)` är kärnan; `playNote(keyIndex)` (piano C3–C5) och `playMidi(midi)`
+  (gitarren, E2 och uppåt) är tunna omslag.
 
 ---
 
@@ -95,7 +108,9 @@ const PRESETS            // färdiga progressioner (6 st)
 
 ## Nästa steg (förslag)
 
-1. **Gitarrvy** — visa skalor/ackord på gitarrhals (6 strängar, standardstämning EADGBE)
-2. **Fler skaltyper** — harmonisk moll, dorisk, mixolydisk m.fl.
-3. **Djupare progressionsanalys** — förklara varför ackord rör sig mot varandra (V→I, II→V etc.)
-4. **Inversions i övningar** — toggle i övningsfliken för att inkludera omvändningar (1st/2nd inversion). Just nu spelas alltid root position. Inget påbörjat.
+1. **Septimackord** (maj7, m7, dom7, m7b5) — utbyggnad av ackordbyggare, quiz, progressioner och gitarrvy
+2. **Rena gehörsövningar** — "endast ljud"-läge i quiz 1 + intervall-gehörsquiz
+3. **Kvintcirkel** — interaktiv vy; antal #/b i skalinfon
+4. **Fler skaltyper** — harmonisk/melodisk moll först, sedan dorisk, mixolydisk m.fl.
+5. **Djupare progressionsanalys** — funktioner (T/S/D), varför V→I löser upp (ledtonen)
+6. **Inversions i övningar** — toggle i övningsfliken för omvändningar. Just nu alltid root position.
