@@ -38,10 +38,21 @@ Interaktiv musikteori-webapp för Tobbe, gitarrist och pianist på avancerad nyb
 
 ## Arkitektur
 
-- Ren vanilla HTML/CSS/JS, **ingen build-step, inga beroenden**
-- Allt i en fil: `index.html`
-- Web Audio API för ljud (pianolikt timbre med harmonics)
-- Piano: 25 tangenter (C3–C5), `W = 38px` för vita tangenter — svarta tangenternas `left`-position beräknas i JS baserat på detta värde. **Ändra inte CSS-bredden utan att även uppdatera `W` i JS.**
+- Ren vanilla HTML/CSS/JS, **ingen build-step, inga beroenden** (funkar direkt på GitHub Pages)
+- **Tre filer** (uppdelad 2026-07-05, tidigare allt i index.html):
+  - `index.html` — enbart markup (~225 rader)
+  - `styles.css` — all CSS, inkl. desktop-/mobilbrytpunkter
+  - `app.js` — all logik, sektionsindelad med banner-kommentarer (klassiskt script, globals)
+- Web Audio API för ljud (pianolikt timbre med harmonics); `localStorage` nås alltid via
+  `store.get/set` (try/catch — får aldrig krascha appen på file:// eller private mode)
+- **Responsivt i tre lägen** (styrs av CSS, automatiskt per skärm):
+  - Mobil (≤640px): kompaktare knappar, horisontell scroll på piano/greppbräda/tabell
+  - Standard (641–1279px): max-bredd 620px
+  - Desktop ≥1280px (1080p+): max-bredd 1100px, större piano och greppbräda
+- Piano: 25 tangenter (C3–C5). Tangentmått ligger i CSS-variabler (`--keyw`, `--keybw`,
+  `--keyh`, `--keybh`) som `app.js` läser **en gång vid load** för svarta tangenters
+  `left`-position — ändra måtten i `:root`/media queries, inte i JS. Byte av brytpunkt
+  kräver sidladdning (inget resize-lyssnande, medvetet enkelt).
 
 ### Språksystem
 ```javascript
