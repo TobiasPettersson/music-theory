@@ -3,12 +3,14 @@
 // ═══════════════════════════════════════════════════════════
 const NOTES     = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const WHITE_POS = [0, null, 1, null, 2, 3, null, 4, null, 5, null, 6];
-// Key sizes live in CSS (--keyw/--keybw, larger on desktop); read them once at
-// load since the black keys' left offsets are computed from them in JS.
+// Key sizes live in CSS (--keyw/--keybw/--keyh/--keybh, larger on desktop); read
+// them once at load since the SVG key outlines are computed from them in JS.
 const cssPx = (name, fallback) =>
   parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || fallback;
 const W  = cssPx('--keyw', 38);
 const BW = cssPx('--keybw', 24);
+const H  = cssPx('--keyh', 160);
+const BH = cssPx('--keybh', 100);
 const START_OCT = 3;
 const SPAN      = 25; // C3–C5
 
@@ -23,6 +25,38 @@ const store = {
 
 // Swedish is the default; the choice persists across visits.
 let lang = store.get('mt-lang') === 'en' ? 'en' : 'sv';
+
+// ═══════════════════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════════════════
+// With nothing stored we set no attribute at all, which leaves the OS
+// preference (prefers-color-scheme, handled in styles.css) in charge. The
+// inline script in index.html applies the stored value before first paint;
+// this only keeps the two buttons in sync and handles the click.
+function currentTheme() {
+  const stored = document.documentElement.getAttribute('data-theme');
+  if (stored) return stored;
+  return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  store.set('mt-theme', theme);
+  applyTheme();
+}
+
+function applyTheme() {
+  const active = currentTheme();
+  const light = document.getElementById('theme-btn-light');
+  const dark  = document.getElementById('theme-btn-dark');
+  if (light) light.classList.toggle('active', active === 'light');
+  if (dark)  dark.classList.toggle('active',  active === 'dark');
+}
+
+// Follow the OS live, but only while the user has not picked a side.
+matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+  if (!document.documentElement.getAttribute('data-theme')) applyTheme();
+});
 
 const TRANSLATIONS = {
   sv: {
@@ -138,6 +172,10 @@ const TRANSLATIONS = {
     'gt-mode-chord': 'Ackord',
     'gt-type-label': 'Typ',
     'gt-hint': 'Standardstämning EADGBE · klicka var som helst på greppbrädan för att höra tonen',
+    'gt-lg-root':  'Grundton',
+    'gt-lg-third': 'Ters',
+    'gt-lg-fifth': 'Kvint',
+    'gt-lg-tone':  'Skalton',
     'gt-tones-label': 'Toner',
     'prog-tempo': 'Tempo:',
   },
@@ -254,6 +292,10 @@ const TRANSLATIONS = {
     'gt-mode-chord': 'Chord',
     'gt-type-label': 'Type',
     'gt-hint': 'Standard tuning EADGBE · click anywhere on the fretboard to hear the note',
+    'gt-lg-root':  'Root',
+    'gt-lg-third': 'Third',
+    'gt-lg-fifth': 'Fifth',
+    'gt-lg-tone':  'Scale tone',
     'gt-tones-label': 'Notes',
     'prog-tempo': 'Tempo:',
   },
@@ -374,6 +416,28 @@ function toggleAudio() {
 // ═══════════════════════════════════════════════════════════
 // PIANO BUILDER
 // ═══════════════════════════════════════════════════════════
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function svgEl(name, attrs) {
+  const el = document.createElementNS(SVG_NS, name);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+// A white key is a rectangle notched wherever a black key overlaps its top
+// half. Which corners get cut depends on the neighbours that actually exist in
+// the rendered range, so the top C of the range stays a plain rectangle.
+function whiteKeyPath(j, cutLeft, cutRight) {
+  const x0 = j * W, x1 = x0 + W;
+  const tl = cutLeft  ? x0 + BW / 2 : x0;
+  const tr = cutRight ? x1 - BW / 2 : x1;
+  let d = `M${tl},0 H${tr}`;
+  if (cutRight) d += ` V${BH} H${x1}`;
+  d += ` V${H} H${x0}`;
+  if (cutLeft)  d += ` V${BH} H${tl}`;
+  return d + ' Z';
+}
+
 function buildPiano(containerId, km, onClick) {
   const piano = document.getElementById(containerId);
   piano.innerHTML = '';
@@ -381,35 +445,61 @@ function buildPiano(containerId, km, onClick) {
   for (let i = 0; i < SPAN; i++)
     wPos.push(WHITE_POS[i % 12] !== null ? wCount++ : null);
 
-  piano.style.cssText = `width:${wCount * W}px;position:relative;`;
+  const isBlack = i => i >= 0 && i < SPAN && WHITE_POS[i % 12] === null;
+  const svg = svgEl('svg', { class: 'piano-svg', width: wCount * W, height: H });
 
+  // White keys first, black keys after — in SVG that painting order is what
+  // puts the black keys on top.
   for (let i = 0; i < SPAN; i++) {
     if (wPos[i] === null) continue;
     const ni = i % 12, oct = START_OCT + Math.floor(i / 12);
-    const el = document.createElement('div');
-    el.className = 'key-w';
-    el.innerHTML = `<span class="k-label">${NOTES[ni]}<br><span style="font-size:0.55rem;color:#aaa">${oct}</span></span>`;
-    el.addEventListener('click', () => onClick(i));
-    piano.appendChild(el);
-    km[i] = { el, isWhite: true, noteIndex: ni, octave: oct };
+    const g = svgEl('g', { class: 'key-w' });
+    g.appendChild(svgEl('path', { d: whiteKeyPath(wPos[i], isBlack(i - 1), isBlack(i + 1)) }));
+
+    const cx   = wPos[i] * W + W / 2;
+    const main = svgEl('text', { class: 'k-main', x: cx, y: H - 24 });
+    const sub  = svgEl('text', { class: 'k-sub',  x: cx, y: H - 11 });
+    main.textContent = NOTES[ni];
+    sub.textContent  = oct;
+    g.appendChild(main); g.appendChild(sub);
+
+    g.addEventListener('click', () => onClick(i));
+    svg.appendChild(g);
+    km[i] = { el: g, main, sub, isWhite: true, noteIndex: ni, octave: oct };
   }
   for (let i = 0; i < SPAN; i++) {
     if (wPos[i] !== null) continue;
     const ni = i % 12, oct = START_OCT + Math.floor(i / 12);
-    const left = wPos[i - 1] * W + W - BW / 2;
-    const el = document.createElement('div');
-    el.className  = 'key-b';
-    el.style.left = left + 'px';
-    el.innerHTML  = '<span class="k-label-b"></span>';
-    el.addEventListener('click', () => onClick(i));
-    piano.appendChild(el);
-    km[i] = { el, isWhite: false, noteIndex: ni, octave: oct };
+    const x  = wPos[i - 1] * W + W - BW / 2;
+    const g  = svgEl('g', { class: 'key-b' });
+    g.appendChild(svgEl('rect', { x, y: 0, width: BW, height: BH, ry: 3 }));
+
+    const main = svgEl('text', { class: 'k-main-b', x: x + BW / 2, y: BH - 9 });
+    g.appendChild(main);
+
+    g.addEventListener('click', () => onClick(i));
+    svg.appendChild(g);
+    km[i] = { el: g, main, sub: null, isWhite: false, noteIndex: ni, octave: oct };
   }
+  piano.appendChild(svg);
 }
 
+// SVG elements have a read-only .className, so the class goes on via setAttribute.
 function setKeyClass(km, i, cls) {
   const k = km[i]; if (!k) return;
-  k.el.className = (k.isWhite ? 'key-w' : 'key-b') + (cls ? ' ' + cls : '');
+  k.el.setAttribute('class', (k.isWhite ? 'key-w' : 'key-b') + (cls ? ' ' + cls : ''));
+}
+
+// Every chord in the app is a triad, so a note's position in the chord IS its
+// interval function — which is what the colour system encodes.
+const FN_CLASS = ['is-root', 'is-third', 'is-fifth'];
+const FN_DOT   = ['is-root', 'is-third', 'is-fifth'];
+const fnClass = i => FN_CLASS[i] || 'is-chord';
+
+function setKeyLabel(km, i, main, sub) {
+  const k = km[i]; if (!k) return;
+  k.main.textContent = main ?? '';
+  if (k.sub) k.sub.textContent = sub ?? '';
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -651,18 +741,11 @@ function renderScale(silent = false) {
     else if (degIdx !== -1) setKeyClass(scKm, k, 'is-scale');
     else                    setKeyClass(scKm, k, null);
 
-    // Label
-    if (km.isWhite) {
-      const lbl = km.el.querySelector('.k-label');
-      if (degIdx !== -1) {
-        lbl.innerHTML = `<span style="font-size:0.7rem">${noteNames[degIdx]}</span><br><span style="font-size:0.58rem;opacity:0.85">${degIdx + 1}</span>`;
-      } else {
-        lbl.innerHTML = `${NOTES[ni]}<br><span style="font-size:0.55rem;color:#aaa">${START_OCT + Math.floor(k/12)}</span>`;
-      }
-    } else {
-      const lbl = km.el.querySelector('.k-label-b');
-      lbl.textContent = degIdx !== -1 ? noteNames[degIdx] : '';
-    }
+    // Label — in-scale keys show the scale spelling and its degree, the rest
+    // fall back to the plain note name and octave.
+    if (degIdx !== -1)   setKeyLabel(scKm, k, noteNames[degIdx], degIdx + 1);
+    else if (km.isWhite) setKeyLabel(scKm, k, NOTES[ni], START_OCT + Math.floor(k / 12));
+    else                 setKeyLabel(scKm, k, '', '');
   }
 
   // ── Scale info box ────────────────────────────────────────
@@ -943,7 +1026,7 @@ function onQ2Key(keyIndex) {
     // Correct — highlight ALL keys with this pitch class
     q2State.found.add(ni);
     for (let k = 0; k < SPAN; k++) {
-      if (q2Km[k] && k % 12 === ni) setKeyClass(q2Km, k, 'is-chord');
+      if (q2Km[k] && k % 12 === ni) setKeyClass(q2Km, k, fnClass(q2State.correctNIs.indexOf(ni)));
     }
     updateQ2Progress();
 
@@ -984,9 +1067,9 @@ function revealQ2() {
   document.getElementById('q2-reveal').disabled = true;
 
   // Highlight all correct keys
-  q2State.correctNIs.forEach(ni => {
+  q2State.correctNIs.forEach((ni, i) => {
     for (let k = 0; k < SPAN; k++) {
-      if (q2Km[k] && k % 12 === ni) setKeyClass(q2Km, k, 'is-chord');
+      if (q2Km[k] && k % 12 === ni) setKeyClass(q2Km, k, fnClass(i));
     }
   });
   // Play chord
@@ -1228,7 +1311,7 @@ function playProgStep() {
 
   // Highlight on piano
   for (let k = 0; k < SPAN; k++) setKeyClass(progKm, k, null);
-  keys.forEach((k, i) => { if (k !== null) setKeyClass(progKm, k, i === 0 ? 'is-scale-root' : 'is-chord'); });
+  keys.forEach((k, i) => { if (k !== null) setKeyClass(progKm, k, fnClass(i)); });
 
   // Show name
   document.getElementById('now-playing').textContent = `${num}  ${name}  —  ${progTypeLabel(type)}`;
@@ -1352,7 +1435,7 @@ function renderChordBuilder(silent = false) {
 
   chordKeys.forEach((k, i) => {
     if (k === null) return;
-    setKeyClass(cbKm, k, i === 0 ? 'is-scale-root' : 'is-chord');
+    setKeyClass(cbKm, k, fnClass(i));
   });
 
   // Build interval structure explanation
@@ -1366,13 +1449,22 @@ function renderChordBuilder(silent = false) {
 
   const whyText = t('cb-why-' + cbType);
 
-  // Tone table rows
+  // Tone table rows — the note column carries the interval-function colour
+  const FN_NAME = ['fn-root', 'fn-third', 'fn-fifth'];
   const tableRows = toneNames.map((name, i) => `
     <tr>
-      <td class="ctt-note ${i === 0 ? 'ctt-root' : ''}">${name}</td>
+      <td class="ctt-note ${FN_NAME[i] || ''}">${name}</td>
       <td class="ctt-semi">${ct.intervals[i]}</td>
       <td class="ctt-degree">${ct.degrees[i]}</td>
     </tr>`).join('');
+
+  // The same three notes again, this time as the stack they are built from.
+  const stackLine = toneNames.map((name, i) => {
+    const pill = `<span class="struct-pill ${FN_NAME[i] || ''}">${name}</span>`;
+    if (i === 0) return pill;
+    const step = ct.intervals[i] - ct.intervals[i - 1];
+    return `<span class="struct-plus">+${step}</span>${pill}`;
+  }).join('');
 
   document.getElementById('cb-info').innerHTML = `
     <div class="chord-builder-name">${chordName}</div>
@@ -1382,14 +1474,15 @@ function renderChordBuilder(silent = false) {
       <tbody>${tableRows}</tbody>
     </table>
     <div class="chord-structure">
-      <div class="struct-line">
+      <div class="struct-line">${stackLine}</div>
+      <div class="struct-line" style="margin-top:0.6rem">
         <span class="struct-pill">${iv1name} (${iv1semi} ht)</span>
         <span class="struct-plus">+</span>
         <span class="struct-pill">${iv2name} (${iv2semi} ht)</span>
         <span class="struct-arrow">→</span>
         <span class="struct-pill">${totalName}</span>
       </div>
-      <div style="margin-top:0.4rem;font-size:0.78rem;color:#6b7280">${whyText}</div>
+      <div style="margin-top:0.5rem;font-size:0.78rem;color:var(--tx-faint)">${whyText}</div>
     </div>
   `;
 
@@ -1471,15 +1564,18 @@ function gtToneMap() {
   const map = new Map();
   if (gtMode === 'scale') {
     const names = SCALE_NOTE_NAMES[gtType][gtRoot];
+    // Scale degrees 1, 3 and 5 are the tonic triad — the rest of the scale
+    // stays neutral, so the home chord is visible inside the shape.
+    const TRIAD = { 0: 0, 2: 1, 4: 2 };
     SCALE_PATTERNS[gtType].forEach((off, d) => {
-      map.set((gtRoot + off) % 12, { name: names[d], degree: String(d + 1) });
+      map.set((gtRoot + off) % 12, { name: names[d], degree: String(d + 1), fn: TRIAD[d] ?? null });
     });
   } else {
     const ct = CB_CHORD_TYPES.find(c => c.id === gtType);
     const letterOffsets = [0, 2, 4];
     ct.intervals.forEach((semi, i) => {
       const name = i === 0 ? CB_ROOT_NAMES[gtRoot] : chordToneName(gtRoot, letterOffsets[i], semi);
-      map.set((gtRoot + semi) % 12, { name, degree: ct.degrees[i] });
+      map.set((gtRoot + semi) % 12, { name, degree: ct.degrees[i], fn: i });
     });
   }
   return map;
@@ -1508,8 +1604,7 @@ function renderGuitar() {
       const tone = tones.get(midi % 12);
       if (tone) {
         const dot = document.createElement('span');
-        const isRoot = midi % 12 === gtRoot;
-        dot.className = 'gt-dot ' + (isRoot ? 'is-root' : gtMode === 'chord' ? 'is-chordtone' : 'is-tone');
+        dot.className = 'gt-dot ' + (tone.fn !== null ? FN_DOT[tone.fn] : 'is-tone');
         dot.textContent = tone.name;
         dot.title = tone.degree;
         cell.appendChild(dot);
@@ -1531,6 +1626,21 @@ function renderGuitar() {
     nums.appendChild(n);
   }
   board.appendChild(nums);
+
+  // Legend — the key to reading the dots. In scale mode the coloured ones are
+  // the tonic triad sitting inside the scale, so the fourth entry earns its place.
+  const legend = document.getElementById('gt-legend');
+  if (legend) {
+    const items = [
+      { cls: 'is-root',  label: t('gt-lg-root') },
+      { cls: 'is-third', label: t('gt-lg-third') },
+      { cls: 'is-fifth', label: t('gt-lg-fifth') },
+    ];
+    if (gtMode === 'scale') items.push({ cls: 'is-tone', label: t('gt-lg-tone') });
+    legend.innerHTML = items.map(it =>
+      `<span class="gt-legend-item"><span class="gt-legend-swatch ${it.cls}"></span>${it.label}</span>`
+    ).join('');
+  }
 
   // Info box: name + tone bubbles (same look as the scales tab)
   const rootName = gtMode === 'scale' ? SCALE_NOTE_NAMES[gtType][gtRoot][0] : CB_ROOT_NAMES[gtRoot];
@@ -1558,6 +1668,7 @@ renderGuitar();
 
 // Apply default language on load
 applyLang();
+applyTheme();
 
 function applyChordHighlight(pattern, silent = false) {
   if (selectedDeg === null) return;
@@ -1577,7 +1688,7 @@ function applyChordHighlight(pattern, silent = false) {
     return (k >= 0 && k < SPAN) ? k : null;
   });
 
-  chordKeys.forEach(k => { if (k !== null) setKeyClass(scKm, k, 'is-chord'); });
+  chordKeys.forEach((k, i) => { if (k !== null) setKeyClass(scKm, k, fnClass(i)); });
 
   // Play arpeggiated, then together (skip on silent re-renders e.g. lang switch)
   if (!silent) {

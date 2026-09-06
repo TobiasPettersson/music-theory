@@ -2,7 +2,7 @@
 
 ## Projektbeskrivning
 
-Interaktiv musikteori-webapp för Tobbe, gitarrist och pianist på avancerad nybörjarnivå. En enda fil: `index.html`. Fokus på konceptuell förståelse — varför saker fungerar, inte bara vad man ska göra.
+Interaktiv musikteori-webapp för Tobbe, gitarrist och pianist på avancerad nybörjarnivå. Fokus på konceptuell förståelse — varför saker fungerar, inte bara vad man ska göra.
 
 **Live:** https://tobiaspettersson.github.io/music-theory/
 **Repo:** https://github.com/TobiasPettersson/music-theory (publikt)
@@ -20,8 +20,8 @@ Interaktiv musikteori-webapp för Tobbe, gitarrist och pianist på avancerad nyb
 | **Ackord** | Välj grundton + typ (Dur/Moll/Dim/Aug). Pianohighlight, tontabell (ton/halvtoner/skalsteg), intervalstruktur med förklaring. |
 | **Progressioner** | Palett med 7 diatoniska ackord, bygg sekvens, presets (I–IV–V etc.), BPM-slider, loop, uppspelning med pianohighlight. |
 | **Övning** | Quiz 1: gissa ackordtyp. Quiz 2: hitta ackordtoner på piano. Poängräkning. |
-| **Gitarr** | Greppbräda 0–12 band, standardstämning EADGBE (höga e överst). Skala (dur/moll) eller ackord (4 typer) per grundton. Korrekta tonnamn på pricksarna, rot i orange, banddots-markörer, klick spelar rätt tonhöjd (E2–E5). |
-| **SV/EN-knapp** | Knapp uppe till höger växlar hela UI:t mellan svenska och engelska. Alla texter, förklaringar och knappar översatta. Standard: svenska; valet sparas i `localStorage` (`mt-lang`). |
+| **Gitarr** | Greppbräda 0–12 band, standardstämning EADGBE (höga e överst). Skala (dur/moll) eller ackord (4 typer) per grundton. Korrekta tonnamn på pricksarna, tonikatreklangen färgad per intervallfunktion, banddots-markörer, klick spelar rätt tonhöjd (E2–E5). Legend under brädan. |
+| **SV/EN + tema** | Knappar uppe till höger: språk (sv/en) och ljust/mörkt tema. Språkknappen växlar hela UI:t. Alla texter, förklaringar och knappar översatta. Standard: svenska; valet sparas i `localStorage` (`mt-lang`). |
 | **Mobilanpassning** | Responsiv CSS, scrollbar flik-nav, horisontell scroll på referenstabell och greppbräda, grid-justeringar. |
 
 ### 🔧 Buggfixar 2026-07-05
@@ -38,10 +38,11 @@ Interaktiv musikteori-webapp för Tobbe, gitarrist och pianist på avancerad nyb
 
 ## Arkitektur
 
-- Ren vanilla HTML/CSS/JS, **ingen build-step, inga beroenden** (funkar direkt på GitHub Pages)
+- Ren vanilla HTML/CSS/JS, **ingen build-step** (funkar direkt på GitHub Pages).
+  Enda externa beroendet är typsnitten från Google Fonts (`<link>` i `index.html`).
 - **Tre filer** (uppdelad 2026-07-05, tidigare allt i index.html):
-  - `index.html` — enbart markup (~225 rader)
-  - `styles.css` — all CSS, inkl. desktop-/mobilbrytpunkter
+  - `index.html` — markup + en inline theme-init som måste ligga kvar i `<head>`
+  - `styles.css` — tokens överst, sedan komponenter; desktop-/mobilbrytpunkter sist
   - `app.js` — all logik, sektionsindelad med banner-kommentarer (klassiskt script, globals)
 - Web Audio API för ljud (pianolikt timbre med harmonics); `localStorage` nås alltid via
   `store.get/set` (try/catch — får aldrig krascha appen på file:// eller private mode)
@@ -49,10 +50,44 @@ Interaktiv musikteori-webapp för Tobbe, gitarrist och pianist på avancerad nyb
   - Mobil (≤640px): kompaktare knappar, horisontell scroll på piano/greppbräda/tabell
   - Standard (641–1279px): max-bredd 620px
   - Desktop ≥1280px (1080p+): max-bredd 1100px, större piano och greppbräda
-- Piano: 25 tangenter (C3–C5). Tangentmått ligger i CSS-variabler (`--keyw`, `--keybw`,
-  `--keyh`, `--keybh`) som `app.js` läser **en gång vid load** för svarta tangenters
-  `left`-position — ändra måtten i `:root`/media queries, inte i JS. Byte av brytpunkt
-  kräver sidladdning (inget resize-lyssnande, medvetet enkelt).
+- Piano: 25 tangenter (C3–C5), ritat som **SVG** (v2). Vita tangenter är urskurna
+  runt de svarta — `whiteKeyPath()` bygger konturen ur `--keyw`/`--keybw`/`--keyh`/
+  `--keybh`, som `app.js` läser **en gång vid load**. Ändra måtten i `:root`/media
+  queries, inte i JS. Byte av brytpunkt kräver sidladdning (inget resize-lyssnande,
+  medvetet enkelt).
+  - `km[i]` = `{ el, main, sub, isWhite, noteIndex, octave }` där `el` är ett `<g>`.
+    SVG har skrivskyddad `.className`, så `setKeyClass()` använder `setAttribute`.
+  - Etiketter sätts med `setKeyLabel(km, i, main, sub)` — aldrig `innerHTML`, eftersom
+    `<br>` inte finns i SVG.
+
+### Designsystem (v2)
+
+- **Tokens** ligger överst i `styles.css`: ytor (`--bg`, `--s-1..3`), text
+  (`--tx`, `--tx-dim`, `--tx-faint`), radier, skugga. Inga råa hex-värden i
+  komponentreglerna — allt går via `var(--…)`.
+- **Färg kodar intervallfunktion, inte flik.** `--fn-root` / `--fn-third` /
+  `--fn-fifth` / `--fn-sev` betyder samma sak på pianot, greppbrädan och i varje
+  tabell. De fyra ligger på samma lightness och chroma i oklch (mörkt L .72,
+  ljust L .47) — bara hue varierar, vilket ger 6,6–7,8:1 mot sin textfärg
+  (`--on-fn`) i båda temana. Ändra hue, inte L/C, om en färg ska bytas.
+- Alla ackord i appen är treklanger, så positionen i ackordet **är** funktionen:
+  `fnClass(i)` i `app.js` mappar 0/1/2 → root/third/fifth. På greppbrädan i
+  skalläge färgas tonikatreklangen (skalsteg 1, 3, 5); övriga skaltoner är grå.
+- **`--raised`** är "en yta ovanför `--s-2`" — `--s-3` i mörkt tema men **vitt** i
+  ljust. Använd den för aktiva kontroller; `--s-3` rakt av gör aktiva flikar
+  mörkare än de inaktiva i ljust läge.
+- **Tema:** `data-theme="light|dark"` på `<html>`, sparat i `localStorage` som
+  `mt-theme`. Utan sparat val sätts **inget attribut**, så
+  `prefers-color-scheme` styr. Den inline-scriptade initen i `<head>` måste ligga
+  kvar — utan den blinkar sidan mörk innan ett sparat ljust tema hinner appliceras.
+- **Typsnitt:** Space Grotesk (UI) + IBM Plex Mono (`--font-mono`: noter, halvtoner,
+  skalsteg). Mono används för allt som är data, inte för brödtext.
+- **Fallgrop i kaskaden:** desktopblocket `@media (min-width: 1280px)` måste ligga
+  **efter** basreglerna det överskriver. Låg det före (som i v1) vann basens
+  `.tab-section { max-width: 620px }` och 1080p-layouten slog aldrig igenom.
+- Centrera aldrig ett scrollbart instrument med `justify-content: center` — det
+  klipper vänsterkanten när innehållet är bredare än behållaren. `margin-inline:
+  auto` på barnet centrerar när det får plats och klipper aldrig när det inte gör det.
 
 ### Språksystem
 ```javascript

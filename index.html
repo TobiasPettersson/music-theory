@@ -4,14 +4,50 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Musikteori</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    // Runs before first paint so a stored light theme never flashes dark.
+    // No stored choice means no attribute, which leaves prefers-color-scheme in charge.
+    (function () {
+      try {
+        var t = localStorage.getItem('mt-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { /* private mode / file:// — the OS preference still applies */ }
+    })();
+  </script>
 </head>
 <body>
 
 <header>
-  <h1 data-i18n="app-title">Musikteori</h1>
+  <h1 class="wordmark" data-i18n="app-title">
+    <svg width="26" height="26" aria-hidden="true">
+      <circle cx="7" cy="16" r="4.4" fill="var(--fn-root)" />
+      <circle cx="13" cy="16" r="4.4" fill="var(--fn-third)" />
+      <circle cx="19" cy="16" r="4.4" fill="var(--fn-fifth)" />
+    </svg>
+    Musikteori
+  </h1>
 </header>
-<button class="lang-toggle" id="lang-toggle" onclick="toggleLang()">EN</button>
+
+<div class="top-controls">
+  <div class="theme-toggle" role="group" aria-label="Theme">
+    <button class="theme-btn" id="theme-btn-light" onclick="setTheme('light')" aria-label="Light theme" title="Light">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="7.5" cy="7.5" r="3.2" />
+        <path d="M7.5 1v1.6M7.5 12.4V14M14 7.5h-1.6M2.6 7.5H1M12.1 2.9l-1.1 1.1M4.5 10.5l-1.1 1.1M12.1 12.1l-1.1-1.1M4.5 4.5 3.4 3.4" />
+      </svg>
+    </button>
+    <button class="theme-btn" id="theme-btn-dark" onclick="setTheme('dark')" aria-label="Dark theme" title="Dark">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12.4 8.6A5.4 5.4 0 0 1 5.4 1.6a5.6 5.6 0 1 0 7 7Z" />
+      </svg>
+    </button>
+  </div>
+  <button class="lang-toggle" id="lang-toggle" onclick="toggleLang()">EN</button>
+</div>
 
 <nav class="tab-nav">
   <button class="tab-btn active" id="tab-btn-intervals" onclick="showTab('intervals')" data-i18n="tab-intervals">Intervaller</button>
@@ -100,6 +136,8 @@
   </div>
 
   <div class="fretboard-wrapper"><div class="fretboard" id="fretboard"></div></div>
+
+  <div class="gt-legend" id="gt-legend"></div>
 
   <div class="scale-info" id="gt-info"></div>
 
