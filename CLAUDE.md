@@ -114,8 +114,28 @@ const IV_LETTER_STEPS    // bokstavssteg per intervall → korrekt stavning (spe
 ```
 
 ### Ljud
-- `playFreq(freq)` är kärnan; `playNote(keyIndex)` (piano C3–C5) och `playMidi(midi)`
-  (gitarren, E2 och uppåt) är tunna omslag.
+
+Samplade instrument med den gamla syntesen som skyddsnät.
+
+- `playNote(keyIndex)` → **piano** (Salamander, C3–C5), `playMidi(midi)` → **gitarr**
+  (FluidR3 steel, E2–E5). Den uppdelningen är hela instrumentvalet: greppbrädan är
+  ensam anropare av `playMidi`, allt annat går via `playNote`.
+- `INSTRUMENTS` i `app.js` håller sampelkartan per instrument. Sampel ligger var
+  tredje halvton, så ingen ton pitchas mer än **en** halvton från en riktig
+  inspelning. Byta sampelset = byta filer i `audio/<instrument>/` och `files`-tabellen.
+  Motorn behöver inte röras.
+- **Lazy per instrument.** `loadInstrument()` körs först när fliken öppnas eller
+  första tonen spelas, så ingen laddar gitarren utan att öppna Gitarr-fliken, och
+  inget alls laddas förrän man vill höra något. `showTab()` värmer rätt bank.
+- **Faller alltid tillbaka.** Medan en bank laddas — och permanent om hämtningen
+  misslyckas (t.ex. `file://`, där `fetch` blockeras) — spelar `playSynth()`.
+  En ton låter alltid; appen blir aldrig tyst.
+- `decodeAudioData` kräver en AudioContext, så `loadInstrument()` får bara anropas
+  efter `initAudio()`.
+- **Sampel är binära:** `.gitattributes` märker `*.mp3 binary`. Utan den kan
+  `core.autocrlf=true` (som är satt på den här maskinen) förstöra dem tyst.
+- Krediter i `audio/CREDITS.md` och i sidfoten. **Salamander är CC BY 3.0 — den
+  synliga kreditraden är ett licensvillkor och får inte tas bort.**
 
 ---
 

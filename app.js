@@ -362,9 +362,35 @@ function applyLang() {
 // ═══════════════════════════════════════════════════════════
 // AUDIO
 // ═══════════════════════════════════════════════════════════
+// Sampled instruments with the old synth as fallback. Banks are lazy-loaded
+// per instrument, so nothing downloads until you ask to hear something, and
+// the guitar never downloads unless you open its tab. Until a bank finishes
+// decoding — and permanently, if the fetch fails — the synth covers, so a
+// note always sounds rather than silently doing nothing.
 let audioCtx     = null;
 let masterOut    = null;
 let audioEnabled = true;
+
+// Samples sit every 3 semitones, so nothing is ever pitched more than one
+// semitone away from a real recording.
+const INSTRUMENTS = {
+  piano: {
+    dir: 'audio/piano/', gain: 0.85, ring: 2.8,
+    files: { 39: 'Ds2', 42: 'Fs2', 45: 'A2', 48: 'C3', 51: 'Ds3', 54: 'Fs3', 57: 'A3',
+             60: 'C4', 63: 'Ds4', 66: 'Fs4', 69: 'A4', 72: 'C5', 75: 'Ds5', 78: 'Fs5' },
+  },
+  guitar: {
+    dir: 'audio/guitar/', gain: 1.15, ring: 3.0,
+    files: { 40: 'E2', 43: 'G2', 46: 'Bb2', 49: 'Db3', 52: 'E3', 55: 'G3', 58: 'Bb3',
+             61: 'Db4', 64: 'E4', 67: 'G4', 70: 'Bb4', 73: 'Db5', 76: 'E5' },
+  },
+};
+Object.keys(INSTRUMENTS).forEach(name => {
+  const inst = INSTRUMENTS[name];
+  inst.midis = Object.keys(inst.files).map(Number).sort((a, b) => a - b);
+  inst.state = 'idle';   // idle | loading | ready | failed
+  inst.bank  = null;
+});
 
 function initAudio() {
   if (audioCtx) { if (audioCtx.state === 'suspended') audioCtx.resume(); return; }
@@ -373,19 +399,65 @@ function initAudio() {
   masterOut.connect(audioCtx.destination);
 }
 
-function noteToFreq(keyIndex) {
-  const midi = (START_OCT + Math.floor(keyIndex / 12) + 1) * 12 + (keyIndex % 12);
-  return 440 * Math.pow(2, (midi - 69) / 12);
+// Needs an AudioContext to decode, so only ever call this after initAudio().
+function loadInstrument(name) {
+  const inst = INSTRUMENTS[name];
+  if (!inst || inst.state !== 'idle') return;
+  inst.state = 'loading';
+  const bank = {};
+  Promise.all(inst.midis.map(midi =>
+    fetch(inst.dir + inst.files[midi] + '.mp3')
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
+      .then(raw => audioCtx.decodeAudioData(raw))
+      .then(buf => { bank[midi] = buf; })
+  )).then(() => { inst.bank = bank; inst.state = 'ready'; })
+    .catch(() => { inst.state = 'failed'; });   // the synth keeps the app usable
 }
 
-function playNote(keyIndex) { playFreq(noteToFreq(keyIndex)); }
-function playMidi(midi)     { playFreq(440 * Math.pow(2, (midi - 69) / 12)); }
+const midiToFreq = midi => 440 * Math.pow(2, (midi - 69) / 12);
+const keyToMidi  = keyIndex =>
+  (START_OCT + Math.floor(keyIndex / 12) + 1) * 12 + (keyIndex % 12);
 
-function playFreq(freq) {
+function playNote(keyIndex) { playInstrument('piano',  keyToMidi(keyIndex)); }
+function playMidi(midi)     { playInstrument('guitar', midi); }
+
+function playInstrument(name, midi) {
   if (!audioEnabled) return;
   initAudio();
+  loadInstrument(name);
+
+  const inst = INSTRUMENTS[name];
+  if (inst.state !== 'ready') { playSynth(midiToFreq(midi)); return; }
+
+  // Nearest recorded note, with the remaining semitones taken by playback rate.
+  let src = inst.midis[0];
+  inst.midis.forEach(m => { if (Math.abs(m - midi) < Math.abs(src - midi)) src = m; });
+
+  const node = audioCtx.createBufferSource();
+  node.buffer = inst.bank[src];
+  node.playbackRate.value = Math.pow(2, (midi - src) / 12);
+
+  const g = audioCtx.createGain();
+  node.connect(g); g.connect(masterOut);
+
+  // Let it ring, then fade the tail so stopping the source never clicks.
   const now  = audioCtx.currentTime;
-  const env  = audioCtx.createGain();
+  const dur  = Math.min(inst.ring, node.buffer.duration / node.playbackRate.value);
+  const fade = Math.min(0.35, dur * 0.3);
+  g.gain.setValueAtTime(inst.gain, now);
+  g.gain.setValueAtTime(inst.gain, now + dur - fade);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+  node.start(now);
+  node.stop(now + dur + 0.02);
+}
+
+// The original additive-synthesis voice. Still the fallback, and still what
+// you hear for the first note or two while a bank is downloading.
+function playSynth(freq) {
+  if (!audioEnabled) return;
+  initAudio();
+  const now = audioCtx.currentTime;
+  const env = audioCtx.createGain();
   env.connect(masterOut);
   [
     { mult: 1, gain: 0.55, type: 'triangle' },
@@ -510,6 +582,8 @@ function showTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   document.getElementById('tab-btn-' + name).classList.add('active');
+  // Start fetching this tab's instrument now rather than on its first note.
+  if (audioEnabled) { initAudio(); loadInstrument(name === 'guitar' ? 'guitar' : 'piano'); }
 }
 
 // ═══════════════════════════════════════════════════════════

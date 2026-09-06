@@ -738,6 +738,18 @@ input[type=range] { accent-color: var(--fn-root); width: 90px; cursor: pointer; 
   .gt-dot { width: 32px; height: 32px; font-size: 0.7rem; }
 }
 
+/* ── Credits ── */
+.credits {
+  margin-top: 2.5rem;
+  font-size: 0.7rem;
+  color: var(--tx-faint);
+  text-align: center;
+  line-height: 1.7;
+  max-width: 620px;
+}
+.credits a { color: var(--tx-dim); text-decoration: none; }
+.credits a:hover { color: var(--tx); text-decoration: underline; }
+
 /* ── Mobile ── */
 @media (max-width: 540px) {
   body { padding: 1rem 0.5rem 2.5rem; }

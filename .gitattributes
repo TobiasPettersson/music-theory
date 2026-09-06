@@ -1,0 +1,3 @@
+# Never let autocrlf touch the samples — it would corrupt them silently.
+*.mp3 binary
+*.ogg binary
