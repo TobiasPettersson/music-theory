@@ -67,9 +67,16 @@ Interaktiv musikteori-webapp för Tobbe, gitarrist och pianist på avancerad nyb
   komponentreglerna — allt går via `var(--…)`.
 - **Färg kodar intervallfunktion, inte flik.** `--fn-root` / `--fn-third` /
   `--fn-fifth` / `--fn-sev` betyder samma sak på pianot, greppbrädan och i varje
-  tabell. De fyra ligger på samma lightness och chroma i oklch (mörkt L .72,
-  ljust L .47) — bara hue varierar, vilket ger 6,6–7,8:1 mot sin textfärg
-  (`--on-fn`) i båda temana. Ändra hue, inte L/C, om en färg ska bytas.
+  tabell. De fyra ligger på samma lightness och chroma i oklch (L .72) — bara
+  hue varierar. Ändra hue, inte L/C, om en färg ska bytas.
+- **Accenten har två värden eftersom den gör två jobb.** `--fn-*` är
+  **fyllningen** (tangentytor, chips, knappar) och är vivid i *båda* temana,
+  med `--on-fn` (`#141416`) som text ovanpå — 6,9–7,8:1. `--fn-*-ink` är
+  **texten och tunna ramar**; den är samma vivida färg i mörkt tema men mörkare
+  (L .47) i ljust, där den behöver 6,0–7,4:1 mot papper.
+  **Använd aldrig ink-värdet som fyllning.** Det var precis det felet som gjorde
+  hela ljusa temat brunt: en orange mörk nog för vit text *är* brun. Brun text
+  är oproblematisk, bruna tangenter är det inte.
 - Alla ackord i appen är treklanger, så positionen i ackordet **är** funktionen:
   `fnClass(i)` i `app.js` mappar 0/1/2 → root/third/fifth. På greppbrädan i
   skalläge färgas tonikatreklangen (skalsteg 1, 3, 5); övriga skaltoner är grå.

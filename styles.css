@@ -19,6 +19,17 @@
   --fn-fifth: #00b9cf;   /* oklch(.72 .125 209.6) */
   --fn-sev:   #a493f9;   /* oklch(.72 .145 289.7) */
   --on-fn:    #141416;
+
+  /* The accent does two jobs and they need different colours. --fn-* FILLS
+     large areas (key surfaces, chips, buttons) and must stay vivid in both
+     themes — an orange dark enough for white text is simply brown. --fn-*-ink
+     is the text-and-thin-border variant, which is what has to go dark on a
+     light background. On dark surfaces the vivid colour is already legible,
+     so here the two sets are the same. */
+  --fn-root-ink:  #e68b3a;
+  --fn-third-ink: #ee7a99;
+  --fn-fifth-ink: #00b9cf;
+  --fn-sev-ink:   #a493f9;
   --danger:   #f2707a;
   --ok:       #4ec9a0;
 
@@ -29,7 +40,7 @@
   /* Piano */
   --key: #eeece6;  --key-hover: #dcd9d1;  --key-bd: #b9b6ae;
   --keyb: #232328; --keyb-hover: #33333b; --keyb-bd: #101013;
-  --keyb-scale: #5c554c;
+  --keyb-scale: #4a4a52;
   --key-label: #3a3833;   /* ink on any pale key — never --tx, which inverts per theme */
 
   --r-sm: 8px;  --r-md: 12px;  --r-lg: 18px;
@@ -51,11 +62,16 @@
   --bd: #dedcd4;  --bd-2: #c9c6bc;
   --tx: #17171a;  --tx-dim: #5e5d5a;  --tx-faint: #8b8985;
 
-  --fn-root:  #884800;   /* oklch(.47 .113  58.6) */
-  --fn-third: #992d51;   /* oklch(.47 .145   4.5) */
-  --fn-fifth: #006774;   /* oklch(.47 .082 209.6) */
-  --fn-sev:   #5c47a5;   /* oklch(.47 .145 289.7) */
-  --on-fn:    #ffffff;
+  --fn-root:  #e68b3a;   /* fills stay vivid — see the note above */
+  --fn-third: #ee7a99;
+  --fn-fifth: #00b9cf;
+  --fn-sev:   #a493f9;
+  --on-fn:    #141416;
+
+  --fn-root-ink:  #884800;   /* oklch(.47 .113  58.6) — 6.5:1 on the page */
+  --fn-third-ink: #992d51;   /* oklch(.47 .145   4.5) */
+  --fn-fifth-ink: #006774;   /* oklch(.47 .082 209.6) */
+  --fn-sev-ink:   #5c47a5;   /* oklch(.47 .145 289.7) */
   --danger:   #b3202c;
   --ok:       #0d7a5f;
 
@@ -63,7 +79,7 @@
 
   --key: #ffffff;  --key-hover: #f0eee8;  --key-bd: #cfccc3;
   --keyb: #2c2b30; --keyb-hover: #3d3c42; --keyb-bd: #17171a;
-  --keyb-scale: #6b6259;
+  --keyb-scale: #6a6870;
   --key-label: #3a3833;
 
   --shadow: 0 1px 2px rgb(20 18 12 / .06), 0 8px 24px -14px rgb(20 18 12 / .22);
@@ -75,11 +91,16 @@
     --bd: #dedcd4;  --bd-2: #c9c6bc;
     --tx: #17171a;  --tx-dim: #5e5d5a;  --tx-faint: #8b8985;
 
-    --fn-root:  #884800;
-    --fn-third: #992d51;
-    --fn-fifth: #006774;
-    --fn-sev:   #5c47a5;
-    --on-fn:    #ffffff;
+    --fn-root:  #e68b3a;
+    --fn-third: #ee7a99;
+    --fn-fifth: #00b9cf;
+    --fn-sev:   #a493f9;
+    --on-fn:    #141416;
+
+    --fn-root-ink:  #884800;
+    --fn-third-ink: #992d51;
+    --fn-fifth-ink: #006774;
+    --fn-sev-ink:   #5c47a5;
     --danger:   #b3202c;
     --ok:       #0d7a5f;
 
@@ -87,7 +108,7 @@
 
     --key: #ffffff;  --key-hover: #f0eee8;  --key-bd: #cfccc3;
     --keyb: #2c2b30; --keyb-hover: #3d3c42; --keyb-bd: #17171a;
-    --keyb-scale: #6b6259;
+    --keyb-scale: #6a6870;
     --key-label: #3a3833;
 
     --shadow: 0 1px 2px rgb(20 18 12 / .06), 0 8px 24px -14px rgb(20 18 12 / .22);
@@ -106,10 +127,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-a { color: var(--fn-root); }
+a { color: var(--fn-root-ink); }
 
 :focus-visible {
-  outline: 2px solid var(--fn-root);
+  outline: 2px solid var(--fn-root-ink);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -262,7 +283,7 @@ header p { color: var(--tx-faint); font-size: 0.9rem; margin-top: 0.3rem; }
 .stat-sub { font-size: 0.7rem; color: var(--tx-dim); margin-top: 0.1rem; }
 .root-note {
   font-family: var(--font-mono);
-  font-size: 1.5rem; font-weight: 600; color: var(--fn-root); margin-bottom: 0.4rem;
+  font-size: 1.5rem; font-weight: 600; color: var(--fn-root-ink); margin-bottom: 0.4rem;
 }
 
 /* ── Reference table ── */
@@ -287,8 +308,8 @@ header p { color: var(--tx-faint); font-size: 0.9rem; margin-top: 0.3rem; }
 .ref-table .td-sv  { font-weight: 600; color: var(--tx); }
 .ref-table.lang-en .td-sv,
 .ref-table.lang-en .th-sv { display: none; }
-.ref-table .td-deg { font-family: var(--font-mono); color: var(--fn-sev); font-weight: 600; }
-.ref-table .td-sem { font-family: var(--font-mono); color: var(--fn-fifth); font-weight: 600; }
+.ref-table .td-deg { font-family: var(--font-mono); color: var(--fn-sev-ink); font-weight: 600; }
+.ref-table .td-sem { font-family: var(--font-mono); color: var(--fn-fifth-ink); font-weight: 600; }
 
 /* ── Buttons ── */
 .btn-row { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1.25rem; }
@@ -436,7 +457,7 @@ header p { color: var(--tx-faint); font-size: 0.9rem; margin-top: 0.3rem; }
   transition: background 0.15s, color 0.15s;
 }
 .lang-toggle:hover { background: var(--s-3); color: var(--tx); }
-.lang-toggle.is-en { color: var(--fn-root); border-color: var(--fn-root); }
+.lang-toggle.is-en { color: var(--fn-root-ink); border-color: var(--fn-root-ink); }
 
 .notation-note { font-size: 0.75rem; color: var(--tx-faint); text-align: center; }
 
@@ -509,7 +530,7 @@ header p { color: var(--tx-faint); font-size: 0.9rem; margin-top: 0.3rem; }
   box-shadow: var(--shadow);
 }
 .chord-card:hover    { background: var(--s-2); border-color: var(--bd-2); }
-.chord-card.selected { border-color: var(--fn-root); background: color-mix(in oklab, var(--fn-root) 12%, var(--s-1)); }
+.chord-card.selected { border-color: var(--fn-root-ink); background: color-mix(in oklab, var(--fn-root) 12%, var(--s-1)); }
 .chord-top { display: flex; align-items: baseline; gap: 0.45rem; margin-bottom: 0.4rem; }
 .chord-numeral { font-family: var(--font-mono); font-size: 0.95rem; font-weight: 600; color: var(--tx-dim); }
 .chord-name   { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; color: var(--tx); }
@@ -518,9 +539,9 @@ header p { color: var(--tx-faint); font-size: 0.9rem; margin-top: 0.3rem; }
   padding: 0.15rem 0.45rem; border-radius: 5px;
   text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.45rem;
 }
-.badge-major { background: color-mix(in oklab, var(--fn-root)  18%, var(--s-1)); color: var(--fn-root); }
-.badge-minor { background: color-mix(in oklab, var(--fn-fifth) 18%, var(--s-1)); color: var(--fn-fifth); }
-.badge-dim   { background: color-mix(in oklab, var(--fn-third) 18%, var(--s-1)); color: var(--fn-third); }
+.badge-major { background: color-mix(in oklab, var(--fn-root)  18%, var(--s-1)); color: var(--fn-root-ink); }
+.badge-minor { background: color-mix(in oklab, var(--fn-fifth) 18%, var(--s-1)); color: var(--fn-fifth-ink); }
+.badge-dim   { background: color-mix(in oklab, var(--fn-third) 18%, var(--s-1)); color: var(--fn-third-ink); }
 .chord-tones { font-family: var(--font-mono); font-size: 0.76rem; color: var(--tx-dim); margin-bottom: 0.35rem; }
 .chord-why   { font-size: 0.7rem;  color: var(--tx-faint); line-height: 1.5; }
 .chord-why strong { color: var(--tx-dim); font-weight: 600; }
@@ -591,7 +612,7 @@ input[type=range] { accent-color: var(--fn-root); width: 90px; cursor: pointer; 
 .now-playing {
   width: 100%; text-align: center; min-height: 1.8rem;
   font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em;
-  color: var(--fn-root); margin-bottom: 0.6rem;
+  color: var(--fn-root-ink); margin-bottom: 0.6rem;
 }
 
 /* ── Chord builder ── */
@@ -614,9 +635,9 @@ input[type=range] { accent-color: var(--fn-root); width: 90px; cursor: pointer; 
 }
 .ctt-note   { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 600; color: var(--tx); }
 /* The note column is colour-coded by the role the note plays in the chord. */
-.ctt-note.fn-root  { color: var(--fn-root); }
-.ctt-note.fn-third { color: var(--fn-third); }
-.ctt-note.fn-fifth { color: var(--fn-fifth); }
+.ctt-note.fn-root  { color: var(--fn-root-ink); }
+.ctt-note.fn-third { color: var(--fn-third-ink); }
+.ctt-note.fn-fifth { color: var(--fn-fifth-ink); }
 .ctt-semi   { font-family: var(--font-mono); font-size: 0.95rem; color: var(--tx-dim); font-weight: 500; }
 .ctt-degree { font-family: var(--font-mono); font-size: 0.95rem; color: var(--tx); font-weight: 600; }
 
@@ -725,7 +746,7 @@ input[type=range] { accent-color: var(--fn-root); width: 90px; cursor: pointer; 
 .q2-chord-name { font-size: 2.6rem; font-weight: 700; letter-spacing: -0.045em; color: var(--tx); }
 .q2-chord-type { font-size: 0.9rem; color: var(--tx-faint); margin-top: 0.2rem; }
 .q2-progress   { font-size: 0.82rem; color: var(--tx-faint); margin-bottom: 0.75rem; }
-.q2-progress strong { color: var(--fn-root); font-family: var(--font-mono); }
+.q2-progress strong { color: var(--fn-root-ink); font-family: var(--font-mono); }
 
 /* Desktop (1080p and up): use the space — wider content, larger piano
    and fretboard. Mobile keeps its own layout via the max-width query below. */
